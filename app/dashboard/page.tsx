@@ -24,8 +24,13 @@ export default async function DashboardPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
-  if (!user) redirect("/sign-in");
+  // Upsert user on first visit — no webhook needed
+  let user = await prisma.user.findUnique({ where: { clerkId: userId } });
+  if (!user) {
+    user = await prisma.user.create({
+      data: { clerkId: userId },
+    });
+  }
 
   const [jobs, recentTime, recentFusion] = await Promise.all([
     prisma.job.findMany({
