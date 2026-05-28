@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertCircle } from "lucide-react";
 import { CreateJobForm } from "./CreateJobForm";
 import { JobStatusSelect } from "./JobStatusSelect";
+import { JobActions } from "./JobActions";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +91,7 @@ export default async function JobsPage() {
                     >
                       {job.status}
                     </Badge>
+                    <JobActions job={job} />
                   </div>
                 </CardHeader>
                 <CardContent>

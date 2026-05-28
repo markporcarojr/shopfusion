@@ -20,7 +20,6 @@ import { UserButton } from "@clerk/nextjs";
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Jobs", href: "/jobs", icon: Briefcase },
-  { label: "Time", href: "/time", icon: Clock },
   { label: "Fusion", href: "/fusion", icon: Box },
 ];
 

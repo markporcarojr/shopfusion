@@ -25,9 +25,14 @@ interface Job {
   jobNumber: number | null;
 }
 
-export function LogTimeForm({ jobs }: { jobs: Job[] }) {
+interface Props {
+  jobs: Job[];
+  defaultJobId?: number;
+}
+
+export function LogTimeForm({ jobs, defaultJobId }: Props) {
   const [open, setOpen] = useState(false);
-  const [jobId, setJobId] = useState("");
+  const [jobId, setJobId] = useState(defaultJobId ? String(defaultJobId) : "");
 
   async function handleSubmit(formData: FormData) {
     formData.set("jobId", jobId);
@@ -50,7 +55,10 @@ export function LogTimeForm({ jobs }: { jobs: Job[] }) {
         <form action={handleSubmit} className="space-y-4 mt-2">
           <div className="space-y-1">
             <label className="text-sm font-medium">Job *</label>
-            <Select onValueChange={setJobId} required>
+            <Select
+              defaultValue={defaultJobId ? String(defaultJobId) : undefined}
+              onValueChange={setJobId}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select a job" />
               </SelectTrigger>

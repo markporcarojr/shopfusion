@@ -46,3 +46,41 @@ export async function updateJobStatus(
 
   revalidatePath("/jobs");
 }
+
+export async function updateJob(jobId: number, formData: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+  if (!user) throw new Error("User not found");
+
+  const customerName = formData.get("customerName") as string;
+  const jobNumber = formData.get("jobNumber") as string;
+  const description = formData.get("description") as string;
+
+  await prisma.job.update({
+    where: { id: jobId, userId: user.id },
+    data: {
+      customerName,
+      jobNumber: jobNumber ? parseInt(jobNumber) : null,
+      description: description || null,
+    },
+  });
+
+  revalidatePath("/jobs");
+}
+
+export async function deleteJob(jobId: number) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+  if (!user) throw new Error("User not found");
+
+  await prisma.job.delete({
+    where: { id: jobId, userId: user.id },
+  });
+
+  revalidatePath("/jobs");
+  revalidatePath("/dashboard");
+}
