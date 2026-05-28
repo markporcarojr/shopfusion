@@ -4,8 +4,16 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { jobNumber, modelName, bodies, boundingBox, components, notes } =
-      body;
+    const {
+      jobNumber,
+      modelName,
+      type,
+      bodies,
+      boundingBox,
+      components,
+      notes,
+      imageData,
+    } = body;
 
     if (!modelName) {
       return NextResponse.json(
@@ -14,7 +22,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Link to existing job if jobNumber matches, otherwise log standalone
     let job = null;
     if (jobNumber) {
       job = await prisma.job.findFirst({
@@ -24,6 +31,7 @@ export async function POST(req: NextRequest) {
 
     const log = await prisma.fusionLog.create({
       data: {
+        type: type || "MODEL",
         modelName: String(modelName),
         bodies: Number(bodies) || 0,
         boundingX: Number(boundingBox?.x) || 0,
@@ -31,6 +39,7 @@ export async function POST(req: NextRequest) {
         boundingZ: Number(boundingBox?.z) || 0,
         components: JSON.stringify(Array.isArray(components) ? components : []),
         notes: notes ? String(notes) : null,
+        imageData: imageData ? String(imageData) : null,
         jobId: job?.id ?? null,
       },
     });
