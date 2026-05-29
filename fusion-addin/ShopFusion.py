@@ -1,6 +1,5 @@
 import adsk.core
 import adsk.fusion
-import adsk.drawing
 import traceback
 import urllib.request
 import urllib.error
@@ -10,7 +9,7 @@ import os
 import base64
 
 # ─── CONFIG ────────────────────────────────────────────────────────────────────
-API_ENDPOINT = "http://your-ngrok-url.ngrok-free.app/api/fusion/log"
+API_ENDPOINT = "https://f7e3-2600-6c8c-2800-b0-39c7-9727-48d3-1285.ngrok-free.app/api/fusion/log"
 EXPORT_DIR = os.path.expanduser("~/Documents/ShopFusion/exports")
 # ────────────────────────────────────────────────────────────────────────────────
 
@@ -42,13 +41,25 @@ def run(context):
         cmd_def.commandCreated.add(on_created)
         _handlers.append(on_created)
 
-        panel = _ui.allToolbarPanels.itemById("SolidScriptsAddinsPanel")
-        if not panel:
-            panel = _ui.allToolbarPanels.itemById("ToolsPanel")
+        panel_ids = [
+            "SolidScriptsAddinsPanel",
+            "ToolsPanel",
+            "InspectPanel",
+            "UtilitiesPanel",
+        ]
 
-        control = panel.controls.addCommand(cmd_def)
-        control.isPromotedByDefault = True
-        control.isPromoted = True
+        panel = None
+        for panel_id in panel_ids:
+            panel = _ui.allToolbarPanels.itemById(panel_id)
+            if panel:
+                break
+
+        if panel:
+            control = panel.controls.addCommand(cmd_def)
+            control.isPromotedByDefault = True
+            control.isPromoted = True
+
+        _ui.messageBox("ShopFusion loaded! Find 'Log to ShopFusion' in your toolbar.")
 
     except Exception:
         if _ui:
@@ -57,12 +68,19 @@ def run(context):
 
 def stop(context):
     try:
-        panel = _ui.allToolbarPanels.itemById("SolidScriptsAddinsPanel")
-        if not panel:
-            panel = _ui.allToolbarPanels.itemById("ToolsPanel")
-        control = panel.controls.itemById("ShopFusionLogCmd")
-        if control:
-            control.deleteMe()
+        panel_ids = [
+            "SolidScriptsAddinsPanel",
+            "ToolsPanel",
+            "InspectPanel",
+            "UtilitiesPanel",
+        ]
+        for panel_id in panel_ids:
+            panel = _ui.allToolbarPanels.itemById(panel_id)
+            if panel:
+                control = panel.controls.itemById("ShopFusionLogCmd")
+                if control:
+                    control.deleteMe()
+                break
         cmd_def = _ui.commandDefinitions.itemById("ShopFusionLogCmd")
         if cmd_def:
             cmd_def.deleteMe()
@@ -70,20 +88,20 @@ def stop(context):
         pass
 
 
-# ─── DETECT WORKSPACE ──────────────────────────────────────────────────────────
 def is_drawing():
-    product = _app.activeProduct
-    return product.productType == "DrawingProductType"
+    try:
+        product = _app.activeProduct
+        return product.productType == "DrawingProductType"
+    except Exception:
+        return False
 
 
-# ─── COMMAND CREATED ───────────────────────────────────────────────────────────
 class CommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
     def notify(self, args):
         try:
             cmd = args.command
             inputs = cmd.commandInputs
 
-            # Auto-detect name from active document
             doc_name = _app.activeDocument.name or ""
 
             inputs.addStringValueInput("partName", "Part Name", doc_name)
@@ -99,7 +117,6 @@ class CommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
             _ui.messageBox(f"ShopFusion UI error:\n{traceback.format_exc()}")
 
 
-# ─── COMMAND EXECUTE ───────────────────────────────────────────────────────────
 class CommandExecuteHandler(adsk.core.CommandEventHandler):
     def notify(self, args):
         try:
@@ -128,7 +145,7 @@ class CommandExecuteHandler(adsk.core.CommandEventHandler):
                     f"✓ Logged to ShopFusion\n\n"
                     f"Part: {payload['modelName']}\n"
                     f"Type: {payload['type']}\n"
-                    f"Job: {payload.get('jobNumber', '—')}"
+                    f"Job: {payload.get('jobNumber') or '—'}"
                 )
             else:
                 _ui.messageBox("Failed to reach ShopFusion API. Is ngrok running?")
@@ -137,13 +154,11 @@ class CommandExecuteHandler(adsk.core.CommandEventHandler):
             _ui.messageBox(f"ShopFusion execute error:\n{traceback.format_exc()}")
 
 
-# ─── DRAWING PAYLOAD ───────────────────────────────────────────────────────────
 def build_drawing_payload(part_name, job_number, revision, notes):
     try:
-        # Export active sheet as PNG
         image_data = export_drawing_as_png()
 
-        payload = {
+        return {
             "type": "DRAWING",
             "modelName": part_name,
             "jobNumber": job_number or None,
@@ -155,14 +170,11 @@ def build_drawing_payload(part_name, job_number, revision, notes):
             "imageData": image_data,
             "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         }
-        return payload
-
     except Exception:
         _ui.messageBox(f"Error building drawing payload:\n{traceback.format_exc()}")
         return None
 
 
-# ─── MODEL PAYLOAD ─────────────────────────────────────────────────────────────
 def build_model_payload(part_name, job_number, revision, notes):
     try:
         design = adsk.fusion.Design.cast(_app.activeProduct)
@@ -191,7 +203,7 @@ def build_model_payload(part_name, job_number, revision, notes):
             if name and name not in component_names:
                 component_names.append(name)
 
-        payload = {
+        return {
             "type": "MODEL",
             "modelName": part_name,
             "jobNumber": job_number or None,
@@ -203,14 +215,11 @@ def build_model_payload(part_name, job_number, revision, notes):
             "imageData": None,
             "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         }
-        return payload
-
     except Exception:
         _ui.messageBox(f"Error building model payload:\n{traceback.format_exc()}")
         return None
 
 
-# ─── EXPORT DRAWING AS PNG ─────────────────────────────────────────────────────
 def export_drawing_as_png():
     try:
         os.makedirs(EXPORT_DIR, exist_ok=True)
@@ -222,10 +231,9 @@ def export_drawing_as_png():
         export_mgr = doc.exportManager
 
         png_options = export_mgr.createPNGExportOptions(export_path)
-        png_options.resolution = 150  # dpi — good balance of quality vs file size
+        png_options.resolution = 150
         export_mgr.execute(png_options)
 
-        # Read and encode as base64
         with open(export_path, "rb") as f:
             image_bytes = f.read()
 
@@ -236,9 +244,17 @@ def export_drawing_as_png():
         return None
 
 
-# ─── API CALL ──────────────────────────────────────────────────────────────────
 def post_to_api(payload: dict) -> bool:
     try:
+        # Test connection first
+        test_req = urllib.request.Request(
+            API_ENDPOINT.replace("/api/fusion/log", "/api/fusion/log"),
+            headers={"User-Agent": "ShopFusion/1.0"},
+            method="GET",
+        )
+        with urllib.request.urlopen(test_req, timeout=5) as test_resp:
+            _ui.messageBox(f"Connection OK: {test_resp.status}")
+
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(
             API_ENDPOINT,
