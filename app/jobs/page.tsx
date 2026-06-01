@@ -7,6 +7,7 @@ import { AlertCircle } from "lucide-react";
 import { CreateJobForm } from "./CreateJobForm";
 import { JobStatusSelect } from "./JobStatusSelect";
 import { JobActions } from "./JobActions";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -63,58 +64,50 @@ export default async function JobsPage() {
               0,
             );
             return (
-              <Card key={job.id}>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <div>
-                    <CardTitle className="text-base">
-                      {job.customerName}
-                    </CardTitle>
-                    {job.description && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {job.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {job.jobNumber && (
-                      <span className="text-xs text-muted-foreground font-mono">
-                        #{job.jobNumber}
-                      </span>
-                    )}
-                    <JobStatusSelect
-                      jobId={job.id}
-                      currentStatus={job.status}
-                    />
-                    <Badge
-                      className={statusColor(job.status)}
-                      variant="outline"
-                    >
-                      {job.status}
-                    </Badge>
-                    <JobActions job={job} />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {job.material && (
-                      <span className="text-xs text-orange-400 border border-orange-900 px-2 py-0.5 rounded font-mono">
-                        {job.material}
-                      </span>
-                    )}
-                    {job.operations && (
+              <Link key={job.id} href={`/jobs/${job.id}`}>
+                <Card className="hover:bg-accent transition-colors cursor-pointer">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <div>
+                      <CardTitle className="text-base">
+                        {job.customerName}
+                      </CardTitle>
+                      {job.description && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {job.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {job.jobNumber && (
+                        <span className="text-xs text-muted-foreground font-mono">
+                          #{job.jobNumber}
+                        </span>
+                      )}
+                      <JobStatusSelect
+                        jobId={job.id}
+                        currentStatus={job.status}
+                      />
+                      <Badge
+                        className={statusColor(job.status)}
+                        variant="outline"
+                      >
+                        {job.status}
+                      </Badge>
+                      <JobActions job={job} />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-3 flex-wrap">
                       <span className="text-xs text-muted-foreground">
-                        {job.operations}
+                        {job.timeEntries
+                          .reduce((acc, e) => acc + e.hours, 0)
+                          .toFixed(1)}{" "}
+                        hrs · {job.timeEntries.length} entries
                       </span>
-                    )}
-                    <span className="text-xs text-muted-foreground">
-                      {job.timeEntries
-                        .reduce((acc, e) => acc + e.hours, 0)
-                        .toFixed(1)}{" "}
-                      hrs · {job.timeEntries.length} entries
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             );
           })}
         </div>

@@ -11,7 +11,7 @@ import {
 
 interface Props {
   jobId: number;
-  currentStatus: "ACTIVE" | "PAUSED" | "DONE";
+  currentStatus: string;
 }
 
 export function JobStatusSelect({ jobId, currentStatus }: Props) {

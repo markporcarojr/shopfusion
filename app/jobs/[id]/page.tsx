@@ -3,25 +3,21 @@ import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, ArrowLeft } from "lucide-react";
+import { AlertCircle, ArrowLeft, Box, Clock, Plus } from "lucide-react";
 import Link from "next/link";
-import { LogTimeForm } from "../LogTimeForm";
-import { TimeEntryActions } from "./TimeEntryActions";
 import { JobActions } from "../JobActions";
 import { JobStatusSelect } from "../JobStatusSelect";
+import { LogTimeForm } from "../LogTimeForm";
+import { TimeEntryActions } from "./TimeEntryActions";
 
 export const dynamic = "force-dynamic";
 
 function statusColor(status: string) {
   switch (status) {
-    case "ACTIVE":
-      return "bg-green-500/10 text-green-500 border-green-500/20";
-    case "PAUSED":
-      return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-    case "DONE":
-      return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
-    default:
-      return "";
+    case "ACTIVE": return "bg-green-500/10 text-green-500 border-green-500/20";
+    case "PAUSED": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+    case "DONE": return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
+    default: return "";
   }
 }
 
@@ -40,49 +36,54 @@ export default async function JobDetailPage({
   const job = await prisma.job.findUnique({
     where: { id: parseInt(id), userId: user.id },
     include: {
+      components: {
+        include: {
+          fusionLogs: {
+            orderBy: { createdAt: "desc" },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
       timeEntries: { orderBy: { date: "desc" } },
-      fusionLogs: { orderBy: { createdAt: "desc" } },
     },
   });
 
   if (!job) notFound();
 
   const totalHours = job.timeEntries.reduce((acc, e) => acc + e.hours, 0);
+  const totalFusionLogs = job.components.reduce(
+    (acc, c) => acc + c.fusionLogs.length,
+    0
+  );
 
   return (
     <div className="p-6 space-y-6">
-      {/* Back + Header */}
-      <div>
-        <Link
-          href="/jobs"
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          Back to Jobs
-        </Link>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              {job.customerName}
-            </h1>
-            {job.description && (
-              <p className="text-muted-foreground text-sm mt-1">
-                {job.description}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            {job.jobNumber && (
-              <span className="text-xs text-muted-foreground font-mono">
-                #{job.jobNumber}
-              </span>
-            )}
-            <JobStatusSelect jobId={job.id} currentStatus={job.status} />
-            <Badge className={statusColor(job.status)} variant="outline">
-              {job.status}
-            </Badge>
-            <JobActions job={job} />
-          </div>
+      {/* Back */}
+      <Link
+        href="/jobs"
+        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="w-3.5 h-3.5" />
+        Back to Jobs
+      </Link>
+
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{job.customerName}</h1>
+          {job.description && (
+            <p className="text-muted-foreground text-sm mt-1">{job.description}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {job.jobNumber && (
+            <span className="text-xs text-muted-foreground font-mono">#{job.jobNumber}</span>
+          )}
+          <JobStatusSelect jobId={job.id} currentStatus={job.status} />
+          <Badge className={statusColor(job.status)} variant="outline">
+            {job.status}
+          </Badge>
+          <JobActions job={job} />
         </div>
       </div>
 
@@ -93,27 +94,74 @@ export default async function JobDetailPage({
             <CardTitle className="text-sm font-medium">Total Hours</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-500">
-              {totalHours.toFixed(1)}
-            </div>
+            <div className="text-2xl font-bold text-orange-500">{totalHours.toFixed(1)}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Entries</CardTitle>
+            <CardTitle className="text-sm font-medium">Components</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{job.timeEntries.length}</div>
+            <div className="text-2xl font-bold">{job.components.length}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Fusion Models</CardTitle>
+            <CardTitle className="text-sm font-medium">Fusion Logs</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{job.fusionLogs.length}</div>
+            <div className="text-2xl font-bold">{totalFusionLogs}</div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Components */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Components</h2>
+        </div>
+
+        {job.components.length === 0 ? (
+          <Card>
+            <CardContent className="flex items-center gap-2 text-muted-foreground text-sm p-6">
+              <AlertCircle className="w-4 h-4" />
+              No components yet — fire the Fusion add-in to log one
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {job.components.map((comp) => (
+              <Link key={comp.id} href={`/jobs/${job.id}/${comp.id}`}>
+                <Card className="hover:bg-accent transition-colors cursor-pointer">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <div>
+                      <CardTitle className="text-base">{comp.name}</CardTitle>
+                      {comp.material && (
+                        <span className="text-xs text-orange-400 border border-orange-900 px-2 py-0.5 rounded font-mono mt-1 inline-block">
+                          {comp.material}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Box className="w-3.5 h-3.5" />
+                        {comp.fusionLogs.length} log{comp.fusionLogs.length !== 1 ? "s" : ""}
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        View →
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  {comp.operations && (
+                    <CardContent>
+                      <p className="text-xs text-muted-foreground">{comp.operations}</p>
+                    </CardContent>
+                  )}
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Time Entries */}
@@ -153,30 +201,6 @@ export default async function JobDetailPage({
           )}
         </CardContent>
       </Card>
-
-      {/* Fusion Logs */}
-      {job.fusionLogs.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Fusion Models</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {job.fusionLogs.map((log) => (
-                <div
-                  key={log.id}
-                  className="flex items-center justify-between py-2 border-b border-border last:border-0"
-                >
-                  <span className="text-sm">{log.modelName}</span>
-                  <span className="text-xs text-muted-foreground font-mono">
-                    {log.boundingX}" × {log.boundingY}" × {log.boundingZ}"
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
