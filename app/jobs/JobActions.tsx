@@ -29,8 +29,6 @@ interface Props {
     customerName: string;
     jobNumber: number | null;
     description: string | null;
-    material: string | null;
-    operations: string | null;
   };
 }
 
@@ -73,15 +71,7 @@ export function JobActions({ job }: Props) {
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Material</label>
-              <input
-                name="material"
-                defaultValue={job.material ?? ""}
-                className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
-                placeholder="e.g. 6061-T6 Aluminum"
-              />
-            </div>
+          
             <div className="space-y-1">
               <label className="text-sm font-medium">Description</label>
               <input
@@ -90,16 +80,7 @@ export function JobActions({ job }: Props) {
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Operations</label>
-              <textarea
-                name="operations"
-                rows={3}
-                defaultValue={job.operations ?? ""}
-                className="w-full border border-border rounded px-3 py-2 text-sm bg-background resize-none"
-                placeholder="e.g. Center drill, 1/2 end mill, face mill 5-insert"
-              />
-            </div>
+           
             <div className="flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                 Cancel
