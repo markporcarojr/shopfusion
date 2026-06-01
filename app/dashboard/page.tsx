@@ -38,7 +38,6 @@ export default async function DashboardPage() {
       include: { timeEntries: true, components: true },
     }),
     prisma.timeEntry.findMany({
-      where: { job: { userId: user.id } },
       orderBy: { date: "desc" },
       take: 5,
       include: { job: true },
@@ -88,13 +87,11 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Hours on Active Jobs
-            </CardTitle>
-            <Clock className="w-4 h-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Jobs</CardTitle>
+            <Briefcase className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalHours.toFixed(1)}</div>
+            <div className="text-2xl font-bold">{jobs.length}</div>
           </CardContent>
         </Card>
 
