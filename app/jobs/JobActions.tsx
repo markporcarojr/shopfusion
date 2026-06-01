@@ -1,15 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { updateJob, deleteJob } from "@/app/actions/jobs";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { deleteJob, updateJob } from "@/app/actions/jobs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +12,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 interface Props {
   job: {
@@ -29,6 +29,7 @@ interface Props {
     customerName: string;
     jobNumber: number | null;
     description: string | null;
+    hoursWorked: number | null;
   };
 }
 
@@ -44,7 +45,11 @@ export function JobActions({ job }: Props) {
     <div className="flex items-center gap-1">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+          >
             <Pencil className="w-3.5 h-3.5" />
           </Button>
         </DialogTrigger>
@@ -71,7 +76,7 @@ export function JobActions({ job }: Props) {
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
               />
             </div>
-          
+
             <div className="space-y-1">
               <label className="text-sm font-medium">Description</label>
               <input
@@ -80,9 +85,13 @@ export function JobActions({ job }: Props) {
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
               />
             </div>
-           
+
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit">Save</Button>
@@ -93,7 +102,11 @@ export function JobActions({ job }: Props) {
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+          >
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </AlertDialogTrigger>
@@ -101,7 +114,8 @@ export function JobActions({ job }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Job?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete {job.customerName} and all associated time entries. This action cannot be undone.
+              This will permanently delete {job.customerName} and all associated
+              time entries. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,9 +1,10 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, Clock, Box, AlertCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+import { AlertCircle, ArrowRight, Box, Briefcase, Clock } from "lucide-react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -24,12 +25,9 @@ export default async function DashboardPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  // Upsert user on first visit — no webhook needed
   let user = await prisma.user.findUnique({ where: { clerkId: userId } });
   if (!user) {
-    user = await prisma.user.create({
-      data: { clerkId: userId },
-    });
+    user = await prisma.user.create({ data: { clerkId: userId } });
   }
 
   const [jobs, recentTime, recentFusion] = await Promise.all([
@@ -37,7 +35,7 @@ export default async function DashboardPage() {
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       take: 5,
-      include: { timeEntries: true },
+      include: { timeEntries: true, components: true },
     }),
     prisma.timeEntry.findMany({
       where: { job: { userId: user.id } },
@@ -47,52 +45,51 @@ export default async function DashboardPage() {
     }),
     prisma.fusionLog.findMany({
       where: {
-        component: {
-          job: {
-            userId: user.id,
-          },
-        },
+        component: { job: { userId: user.id } },
       },
       orderBy: { createdAt: "desc" },
       take: 5,
       include: {
-        component: {
-          include: { job: true },
-        },
+        component: { include: { job: true } },
       },
     }),
   ]);
 
   const activeJobs = jobs.filter((j) => j.status === "ACTIVE").length;
-  const totalHours = recentTime.reduce((acc, e) => acc + e.hours, 0);
+  const totalHours = jobs
+    .filter((j) => j.status === "ACTIVE")
+    .reduce((acc, j) => acc + (j.hoursWorked ?? 0), 0);
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground text-sm">
-          Welcome back to ShopFusion
-        </p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-sm">ShopFusion</p>
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
-            <Briefcase className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-500">
-              {activeJobs}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-3 gap-4">
+        <Link href="/jobs">
+          <Card className="hover:bg-accent transition-colors cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
+              <Briefcase className="w-4 h-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-500">
+                {activeJobs}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
-              Hours This Week
+              Hours on Active Jobs
             </CardTitle>
             <Clock className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
@@ -101,111 +98,117 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
+        <Link href="/fusion">
+          <Card className="hover:bg-accent transition-colors cursor-pointer">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Fusion Logs</CardTitle>
+              <Box className="w-4 h-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{recentFusion.length}</div>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
+      {/* Two column layout */}
+      <div className="grid grid-cols-2 gap-6">
+        {/* Recent Jobs */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Fusion Models</CardTitle>
-            <Box className="w-4 h-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium">Recent Jobs</CardTitle>
+            <Link
+              href="/jobs"
+              className="text-xs text-orange-500 hover:underline flex items-center gap-1"
+            >
+              View all <ArrowRight className="w-3 h-3" />
+            </Link>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{recentFusion.length}</div>
+            {jobs.length === 0 ? (
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <AlertCircle className="w-4 h-4" />
+                No jobs yet
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {jobs.map((job) => (
+                  <Link key={job.id} href={`/jobs/${job.id}`}>
+                    <div className="flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium text-sm truncate block">
+                          {job.customerName}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {job.components.length} component
+                          {job.components.length !== 1 ? "s" : ""}
+                          {job.jobNumber ? ` · #${job.jobNumber}` : ""}
+                        </span>
+                      </div>
+                      <Badge
+                        className={statusColor(job.status)}
+                        variant="outline"
+                      >
+                        {job.status}
+                      </Badge>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Time Entries */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-medium">Recent Time</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recentTime.length === 0 ? (
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                <AlertCircle className="w-4 h-4" />
+                No time logged yet
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {recentTime.map((entry) => (
+                  <Link key={entry.id} href={`/jobs/${entry.job.id}`}>
+                    <div className="flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium text-sm truncate block">
+                          {entry.job.customerName}
+                        </span>
+                        {entry.note && (
+                          <span className="text-xs text-muted-foreground truncate block">
+                            {entry.note}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm font-mono text-orange-500 shrink-0">
+                        {entry.hours}h
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Jobs */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Recent Jobs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {jobs.length === 0 ? (
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <AlertCircle className="w-4 h-4" />
-              No jobs yet
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {jobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="flex items-center justify-between py-2 border-b border-border last:border-0"
-                >
-                  <div>
-                    <span className="font-medium text-sm">
-                      {job.customerName}
-                    </span>
-                    {job.description && (
-                      <p className="text-xs text-muted-foreground">
-                        {job.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {job.jobNumber && (
-                      <span className="text-xs text-muted-foreground">
-                        #{job.jobNumber}
-                      </span>
-                    )}
-                    <Badge
-                      className={statusColor(job.status)}
-                      variant="outline"
-                    >
-                      {job.status}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Recent Time Entries */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">
-            Recent Time Entries
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {recentTime.length === 0 ? (
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <AlertCircle className="w-4 h-4" />
-              No time logged yet
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {recentTime.map((entry) => (
-                <div
-                  key={entry.id}
-                  className="flex items-center justify-between py-2 border-b border-border last:border-0"
-                >
-                  <div>
-                    <span className="font-medium text-sm">
-                      {entry.job.customerName}
-                    </span>
-                    {entry.note && (
-                      <p className="text-xs text-muted-foreground">
-                        {entry.note}
-                      </p>
-                    )}
-                  </div>
-                  <span className="text-sm font-mono text-orange-500">
-                    {entry.hours}h
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
       {/* Recent Fusion Logs */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm font-medium">
-            Recent Fusion Models
+            Recent Fusion Logs
           </CardTitle>
+          <Link
+            href="/fusion"
+            className="text-xs text-orange-500 hover:underline flex items-center gap-1"
+          >
+            View all <ArrowRight className="w-3 h-3" />
+          </Link>
         </CardHeader>
         <CardContent>
           {recentFusion.length === 0 ? (
@@ -214,25 +217,33 @@ export default async function DashboardPage() {
               No models logged yet
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
               {recentFusion.map((log) => (
-                <div
+                <Link
                   key={log.id}
-                  className="flex items-center justify-between py-2 border-b border-border last:border-0"
+                  href={
+                    log.component?.job
+                      ? `/jobs/${log.component.job.id}/${log.component.id}`
+                      : "/fusion"
+                  }
                 >
-                  <div>
-                    <span className="font-medium text-sm">{log.modelName}</span>
-                    {log.job && (
-                      <p className="text-xs text-muted-foreground">
-                        {log.job.customerName}
-                      </p>
-                    )}
+                  <div className="flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <span className="font-medium text-sm truncate block">
+                        {log.modelName}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {log.component?.job?.customerName ?? "—"}
+                        {log.component?.job?.jobNumber
+                          ? ` · #${log.component.job.jobNumber}`
+                          : ""}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-xs shrink-0">
+                      {log.type === "DRAWING" ? "DWG" : "MDL"}
+                    </Badge>
                   </div>
-                  <span className="text-xs text-muted-foreground font-mono">
-                    {log.boundingX}&quot; × {log.boundingY}&quot; ×{" "}
-                    {log.boundingZ}&quot;
-                  </span>
-                </div>
+                </Link>
               ))}
             </div>
           )}

@@ -21,6 +21,7 @@ type Job = {
   customerName: string;
   description: string | null;
   status: string;
+  hoursWorked: number | null;
   createdAt: Date;
   timeEntries: { hours: number }[];
   components: { id: number; name: string; material: string | null }[];
@@ -176,7 +177,7 @@ export function JobsList({ jobs }: { jobs: Job[] }) {
                     </span>
                     <span className="flex items-center gap-1 text-xs text-orange-500 font-mono">
                       <Clock className="w-3.5 h-3.5" />
-                      {totalHours.toFixed(1)}h
+                      {job.hoursWorked ? `${job.hoursWorked}h` : "—"}
                     </span>
                     <Badge
                       className={statusColor(job.status)}

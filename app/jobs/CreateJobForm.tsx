@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { createJob } from "@/app/actions/jobs";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
+import { useState } from "react";
 
 export function CreateJobForm() {
   const [open, setOpen] = useState(false);
@@ -60,6 +60,17 @@ export function CreateJobForm() {
             />
           </div>
           <div className="space-y-1">
+            <label className="text-sm font-medium">Hours Worked</label>
+            <input
+              name="hoursWorked"
+              type="number"
+              step="0.25"
+              min="0"
+              className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
+              placeholder="e.g. 4.5 (optional)"
+            />
+          </div>
+          <div className="space-y-1">
             <label className="text-sm font-medium">Description</label>
             <input
               name="description"
@@ -77,7 +88,11 @@ export function CreateJobForm() {
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setOpen(false)}
+            >
               Cancel
             </Button>
             <Button type="submit">Create</Button>
