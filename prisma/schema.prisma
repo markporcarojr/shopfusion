@@ -4,26 +4,15 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-}
-
-enum JobStatus {
-  ACTIVE
-  PAUSED
-  DONE
-}
-
-enum UserRole {
-  USER
-  ADMIN
+  provider = "sqlite"
 }
 
 model User {
-  id      Int      @id @default(autoincrement())
-  clerkId String   @unique
-  email   String?  @unique
+  id      Int     @id @default(autoincrement())
+  clerkId String  @unique
+  email   String? @unique
   name    String?
-  role    UserRole @default(USER)
+  role    String  @default("USER")
 
   jobs Job[]
 }
@@ -33,7 +22,7 @@ model Job {
   jobNumber    Int?
   customerName String
   description  String?
-  status       JobStatus @default(PAUSED)
+  status       String    @default("PAUSED")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   user         User      @relation(fields: [userId], references: [id])
@@ -58,7 +47,7 @@ model TimeEntry {
 
 model FusionLog {
   id         Int      @id @default(autoincrement())
-  type       String   @default("MODEL") // "MODEL" or "DRAWING"
+  type       String   @default("MODEL")
   modelName  String
   boundingX  Float    @default(0)
   boundingY  Float    @default(0)
@@ -66,7 +55,7 @@ model FusionLog {
   bodies     Int      @default(0)
   components String   @default("[]")
   notes      String?
-  imageData  String? // base64 PNG
+  imageData  String?
   createdAt  DateTime @default(now())
   job        Job?     @relation(fields: [jobId], references: [id])
   jobId      Int?

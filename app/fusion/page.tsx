@@ -93,11 +93,11 @@ export default async function FusionPage() {
                   {/* Blueprint image */}
                   {log.imageData && (
                     <div className="border border-border rounded overflow-hidden">
-                      <img
-                        src={`data:image/png;base64,${log.imageData}`}
-                        alt={log.modelName}
-                        className="w-full object-contain max-h-96 bg-white"
-                      />
+                     <iframe
+                      src={`data:application/pdf;base64,${log.imageData}`}
+                      className="w-full h-96 border-0"
+                      title={log.modelName}
+                    />
                     </div>
                   )}
 
