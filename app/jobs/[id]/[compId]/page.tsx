@@ -1,10 +1,12 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { AlertCircle, ArrowLeft, Box, FileImage } from "lucide-react";
 import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { ComponentActions } from "../ComponentActions";
+import { FusionLogActions } from "./FusionLogActions";
 
 export const dynamic = "force-dynamic";
 
@@ -44,17 +46,22 @@ export default async function ComponentDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{component.name}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {component.name}
+          </h1>
           <p className="text-muted-foreground text-sm mt-1">
             {component.job.customerName}
             {component.job.jobNumber ? ` · #${component.job.jobNumber}` : ""}
           </p>
         </div>
-        {component.material && (
-          <span className="text-xs text-orange-400 border border-orange-900 px-3 py-1 rounded font-mono">
-            {component.material}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {component.material && (
+            <span className="text-xs text-orange-400 border border-orange-900 px-3 py-1 rounded font-mono">
+              {component.material}
+            </span>
+          )}
+          <ComponentActions component={component} />
+        </div>
       </div>
 
       {/* Stats */}
@@ -64,7 +71,9 @@ export default async function ComponentDetailPage({
             <CardTitle className="text-sm font-medium">Fusion Logs</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{component.fusionLogs.length}</div>
+            <div className="text-2xl font-bold">
+              {component.fusionLogs.length}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -120,7 +129,11 @@ export default async function ComponentDetailPage({
           <div className="space-y-4">
             {component.fusionLogs.map((log) => {
               const fusionComponents = (() => {
-                try { return JSON.parse(log.components); } catch { return []; }
+                try {
+                  return JSON.parse(log.components);
+                } catch {
+                  return [];
+                }
               })();
 
               return (
@@ -133,13 +146,15 @@ export default async function ComponentDetailPage({
                         <Box className="w-4 h-4 text-orange-500" />
                       )}
                       <div>
-                        <CardTitle className="text-base">{log.modelName}</CardTitle>
+                        <CardTitle className="text-base">
+                          {log.modelName}
+                        </CardTitle>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {new Date(log.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       {log.type === "MODEL" && (
                         <span className="text-xs text-muted-foreground font-mono">
                           {log.boundingX}" × {log.boundingY}" × {log.boundingZ}"
@@ -148,10 +163,18 @@ export default async function ComponentDetailPage({
                       <Badge variant="outline" className="text-xs">
                         {log.type === "DRAWING" ? "Drawing" : "Model"}
                       </Badge>
+                      <FusionLogActions
+                        log={{
+                          id: log.id,
+                          notes: log.notes,
+                          modelName: log.modelName,
+                          componentId: component.id,
+                          jobId: component.job.id,
+                        }}
+                      />
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {/* PDF Drawing */}
                     {log.imageData && (
                       <div className="border border-border rounded overflow-hidden">
                         <iframe
@@ -161,17 +184,22 @@ export default async function ComponentDetailPage({
                         />
                       </div>
                     )}
-
                     <div className="flex items-center justify-between">
                       <div className="flex flex-wrap gap-1">
                         {fusionComponents.map((c: string) => (
-                          <Badge key={c} variant="secondary" className="text-xs">
+                          <Badge
+                            key={c}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {c}
                           </Badge>
                         ))}
                       </div>
                       {log.notes && (
-                        <span className="text-xs text-muted-foreground">{log.notes}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {log.notes}
+                        </span>
                       )}
                     </div>
                   </CardContent>

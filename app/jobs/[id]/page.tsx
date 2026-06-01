@@ -1,23 +1,29 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, ArrowLeft, Box, Clock, Plus } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+import { AlertCircle, ArrowLeft, Box } from "lucide-react";
 import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 import { JobActions } from "../JobActions";
 import { JobStatusSelect } from "../JobStatusSelect";
 import { LogTimeForm } from "../LogTimeForm";
+import { ComponentActions } from "./ComponentActions";
+import { CreateComponentForm } from "./CreateComponentForm";
 import { TimeEntryActions } from "./TimeEntryActions";
 
 export const dynamic = "force-dynamic";
 
 function statusColor(status: string) {
   switch (status) {
-    case "ACTIVE": return "bg-green-500/10 text-green-500 border-green-500/20";
-    case "PAUSED": return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
-    case "DONE": return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
-    default: return "";
+    case "ACTIVE":
+      return "bg-green-500/10 text-green-500 border-green-500/20";
+    case "PAUSED":
+      return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+    case "DONE":
+      return "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
+    default:
+      return "";
   }
 }
 
@@ -53,7 +59,7 @@ export default async function JobDetailPage({
   const totalHours = job.timeEntries.reduce((acc, e) => acc + e.hours, 0);
   const totalFusionLogs = job.components.reduce(
     (acc, c) => acc + c.fusionLogs.length,
-    0
+    0,
   );
 
   return (
@@ -70,14 +76,20 @@ export default async function JobDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{job.customerName}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {job.customerName}
+          </h1>
           {job.description && (
-            <p className="text-muted-foreground text-sm mt-1">{job.description}</p>
+            <p className="text-muted-foreground text-sm mt-1">
+              {job.description}
+            </p>
           )}
         </div>
         <div className="flex items-center gap-3">
           {job.jobNumber && (
-            <span className="text-xs text-muted-foreground font-mono">#{job.jobNumber}</span>
+            <span className="text-xs text-muted-foreground font-mono">
+              #{job.jobNumber}
+            </span>
           )}
           <JobStatusSelect jobId={job.id} currentStatus={job.status} />
           <Badge className={statusColor(job.status)} variant="outline">
@@ -91,10 +103,12 @@ export default async function JobDetailPage({
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Hours</CardTitle>
+            <CardTitle className="text-sm font-medium">Time Logged</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-500">{totalHours.toFixed(1)}</div>
+            <div className="text-2xl font-bold text-orange-500">
+              {totalHours.toFixed(1)}h
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -119,21 +133,25 @@ export default async function JobDetailPage({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Components</h2>
+          <CreateComponentForm jobId={job.id} />
         </div>
 
         {job.components.length === 0 ? (
           <Card>
             <CardContent className="flex items-center gap-2 text-muted-foreground text-sm p-6">
               <AlertCircle className="w-4 h-4" />
-              No components yet — fire the Fusion add-in to log one
+              No components yet — add one manually or fire the Fusion add-in
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
             {job.components.map((comp) => (
-              <Link key={comp.id} href={`/jobs/${job.id}/${comp.id}`}>
-                <Card className="hover:bg-accent transition-colors cursor-pointer">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <Card
+                key={comp.id}
+                className="hover:bg-accent/50 transition-colors"
+              >
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <Link href={`/jobs/${job.id}/${comp.id}`} className="flex-1">
                     <div>
                       <CardTitle className="text-base">{comp.name}</CardTitle>
                       {comp.material && (
@@ -142,23 +160,27 @@ export default async function JobDetailPage({
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Box className="w-3.5 h-3.5" />
-                        {comp.fusionLogs.length} log{comp.fusionLogs.length !== 1 ? "s" : ""}
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        View →
-                      </Badge>
+                  </Link>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Box className="w-3.5 h-3.5" />
+                      {comp.fusionLogs.length} log
+                      {comp.fusionLogs.length !== 1 ? "s" : ""}
                     </div>
-                  </CardHeader>
-                  {comp.operations && (
-                    <CardContent>
-                      <p className="text-xs text-muted-foreground">{comp.operations}</p>
-                    </CardContent>
-                  )}
-                </Card>
-              </Link>
+                    <ComponentActions component={comp} />
+                    <Badge variant="outline" className="text-xs">
+                      View →
+                    </Badge>
+                  </div>
+                </CardHeader>
+                {comp.operations && (
+                  <CardContent>
+                    <p className="text-xs text-muted-foreground">
+                      {comp.operations}
+                    </p>
+                  </CardContent>
+                )}
+              </Card>
             ))}
           </div>
         )}
