@@ -52,19 +52,32 @@ export function CreateJobForm() {
             />
           </div>
           <div className="space-y-1">
+            <label className="text-sm font-medium">Material</label>
+            <input
+              name="material"
+              className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
+              placeholder="e.g. 6061-T6 Aluminum, 4140 Steel"
+            />
+          </div>
+          <div className="space-y-1">
             <label className="text-sm font-medium">Description</label>
             <input
               name="description"
               className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
-              placeholder="e.g. Face mill 6061 blank"
+              placeholder="e.g. Bore fixture"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Operations</label>
+            <textarea
+              name="operations"
+              rows={3}
+              className="w-full border border-border rounded px-3 py-2 text-sm bg-background resize-none"
+              placeholder="e.g. Center drill, 1/2 end mill, face mill 5-insert"
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setOpen(false)}
-            >
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button type="submit">Create</Button>

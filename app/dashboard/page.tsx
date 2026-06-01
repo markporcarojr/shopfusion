@@ -46,10 +46,20 @@ export default async function DashboardPage() {
       include: { job: true },
     }),
     prisma.fusionLog.findMany({
-      where: { job: { userId: user.id } },
+      where: {
+        component: {
+          job: {
+            userId: user.id,
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
       take: 5,
-      include: { job: true },
+      include: {
+        component: {
+          include: { job: true },
+        },
+      },
     }),
   ]);
 

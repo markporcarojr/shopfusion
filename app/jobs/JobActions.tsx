@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Pencil, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Pencil, Trash2 } from "lucide-react";
 
 interface Props {
   job: {
@@ -29,6 +29,8 @@ interface Props {
     customerName: string;
     jobNumber: number | null;
     description: string | null;
+    material: string | null;
+    operations: string | null;
   };
 }
 
@@ -44,11 +46,7 @@ export function JobActions({ job }: Props) {
     <div className="flex items-center gap-1">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
             <Pencil className="w-3.5 h-3.5" />
           </Button>
         </DialogTrigger>
@@ -76,6 +74,15 @@ export function JobActions({ job }: Props) {
               />
             </div>
             <div className="space-y-1">
+              <label className="text-sm font-medium">Material</label>
+              <input
+                name="material"
+                defaultValue={job.material ?? ""}
+                className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
+                placeholder="e.g. 6061-T6 Aluminum"
+              />
+            </div>
+            <div className="space-y-1">
               <label className="text-sm font-medium">Description</label>
               <input
                 name="description"
@@ -83,12 +90,18 @@ export function JobActions({ job }: Props) {
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
               />
             </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Operations</label>
+              <textarea
+                name="operations"
+                rows={3}
+                defaultValue={job.operations ?? ""}
+                className="w-full border border-border rounded px-3 py-2 text-sm bg-background resize-none"
+                placeholder="e.g. Center drill, 1/2 end mill, face mill 5-insert"
+              />
+            </div>
             <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setOpen(false)}
-              >
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit">Save</Button>
@@ -99,11 +112,7 @@ export function JobActions({ job }: Props) {
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-destructive"
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </AlertDialogTrigger>
@@ -111,8 +120,7 @@ export function JobActions({ job }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Job?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete {job.customerName} and all associated
-              time entries. This action cannot be undone.
+              This will permanently delete {job.customerName} and all associated time entries. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

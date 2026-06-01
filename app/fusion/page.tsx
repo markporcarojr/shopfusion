@@ -17,7 +17,11 @@ export default async function FusionPage() {
   const logs = await prisma.fusionLog.findMany({
     orderBy: { createdAt: "desc" },
     take: 50,
-    include: { job: true },
+    include: {
+      component: {
+        include: { job: true },
+      },
+    },
   });
 
   return (
@@ -67,10 +71,12 @@ export default async function FusionPage() {
                       <CardTitle className="text-base">
                         {log.modelName}
                       </CardTitle>
-                      {log.job && (
+                      {log.component?.job && (
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {log.job.customerName}
-                          {log.job.jobNumber ? ` · #${log.job.jobNumber}` : ""}
+                          {log.component.job.customerName}
+                          {log.component.job.jobNumber
+                            ? ` · #${log.component.job.jobNumber}`
+                            : ""}
                         </p>
                       )}
                     </div>
@@ -93,11 +99,11 @@ export default async function FusionPage() {
                   {/* Blueprint image */}
                   {log.imageData && (
                     <div className="border border-border rounded overflow-hidden">
-                     <iframe
-                      src={`data:application/pdf;base64,${log.imageData}`}
-                      className="w-full h-96 border-0"
-                      title={log.modelName}
-                    />
+                      <iframe
+                        src={`data:application/pdf;base64,${log.imageData}`}
+                        className="w-full h-96 border-0"
+                        title={log.modelName}
+                      />
                     </div>
                   )}
 

@@ -28,10 +28,25 @@ model Job {
   user         User      @relation(fields: [userId], references: [id])
   userId       Int
 
+  components  Component[]
   timeEntries TimeEntry[]
-  fusionLogs  FusionLog[]
 
   @@index([userId])
+}
+
+model Component {
+  id          Int     @id @default(autoincrement())
+  name        String
+  material    String?
+  operations  String?
+  notes       String?
+  job         Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId       Int
+  createdAt   DateTime @default(now())
+
+  fusionLogs FusionLog[]
+
+  @@index([jobId])
 }
 
 model TimeEntry {
@@ -39,7 +54,7 @@ model TimeEntry {
   hours Float
   note  String?
   date  DateTime @default(now())
-  job   Job      @relation(fields: [jobId], references: [id])
+  job   Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   jobId Int
 
   @@index([jobId])
@@ -57,8 +72,8 @@ model FusionLog {
   notes      String?
   imageData  String?
   createdAt  DateTime @default(now())
-  job        Job?     @relation(fields: [jobId], references: [id])
-  jobId      Int?
+  component  Component? @relation(fields: [componentId], references: [id], onDelete: SetNull)
+  componentId Int?
 
-  @@index([jobId])
+  @@index([componentId])
 }

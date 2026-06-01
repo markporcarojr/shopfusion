@@ -95,10 +95,24 @@ export default async function JobsPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <span className="text-xs text-muted-foreground">
-                    {totalHours.toFixed(1)} hrs logged ·{" "}
-                    {job.timeEntries.length} entries
-                  </span>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {job.material && (
+                      <span className="text-xs text-orange-400 border border-orange-900 px-2 py-0.5 rounded font-mono">
+                        {job.material}
+                      </span>
+                    )}
+                    {job.operations && (
+                      <span className="text-xs text-muted-foreground">
+                        {job.operations}
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground">
+                      {job.timeEntries
+                        .reduce((acc, e) => acc + e.hours, 0)
+                        .toFixed(1)}{" "}
+                      hrs · {job.timeEntries.length} entries
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
             );

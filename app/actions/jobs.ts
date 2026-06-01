@@ -14,6 +14,8 @@ export async function createJob(formData: FormData) {
   const customerName = formData.get("customerName") as string;
   const jobNumber = formData.get("jobNumber") as string;
   const description = formData.get("description") as string;
+  const material = formData.get("material") as string;
+  const operations = formData.get("operations") as string;
 
   if (!customerName) throw new Error("Customer name is required");
 
@@ -22,26 +24,10 @@ export async function createJob(formData: FormData) {
       customerName,
       jobNumber: jobNumber ? parseInt(jobNumber) : null,
       description: description || null,
+      material: material || null,
+      operations: operations || null,
       userId: user.id,
     },
-  });
-
-  revalidatePath("/jobs");
-}
-
-export async function updateJobStatus(
-  jobId: number,
-  status: "ACTIVE" | "PAUSED" | "DONE",
-) {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
-
-  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
-  if (!user) throw new Error("User not found");
-
-  await prisma.job.update({
-    where: { id: jobId, userId: user.id },
-    data: { status },
   });
 
   revalidatePath("/jobs");
@@ -57,6 +43,8 @@ export async function updateJob(jobId: number, formData: FormData) {
   const customerName = formData.get("customerName") as string;
   const jobNumber = formData.get("jobNumber") as string;
   const description = formData.get("description") as string;
+  const material = formData.get("material") as string;
+  const operations = formData.get("operations") as string;
 
   await prisma.job.update({
     where: { id: jobId, userId: user.id },
@@ -64,7 +52,28 @@ export async function updateJob(jobId: number, formData: FormData) {
       customerName,
       jobNumber: jobNumber ? parseInt(jobNumber) : null,
       description: description || null,
+      material: material || null,
+      operations: operations || null,
     },
+  });
+
+  revalidatePath("/jobs");
+  revalidatePath("/dashboard");
+}
+
+export async function updateJobStatus(
+  jobId: number,
+  status: "ACTIVE" | "PAUSED" | "DONE"
+) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+  if (!user) throw new Error("User not found");
+
+  await prisma.job.update({
+    where: { id: jobId, userId: user.id },
+    data: { status },
   });
 
   revalidatePath("/jobs");
