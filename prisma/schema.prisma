@@ -36,14 +36,14 @@ model Job {
 }
 
 model Component {
-  id          Int     @id @default(autoincrement())
-  name        String
-  material    String?
-  operations  String?
-  notes       String?
-  job         Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  jobId       Int
-  createdAt   DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  name       String
+  material   String?
+  operations String?
+  notes      String?
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId      Int
+  createdAt  DateTime @default(now())
 
   fusionLogs FusionLog[]
 
@@ -62,18 +62,18 @@ model TimeEntry {
 }
 
 model FusionLog {
-  id         Int      @id @default(autoincrement())
-  type       String   @default("MODEL")
-  modelName  String
-  boundingX  Float    @default(0)
-  boundingY  Float    @default(0)
-  boundingZ  Float    @default(0)
-  bodies     Int      @default(0)
-  components String   @default("[]")
-  notes      String?
-  imageData  String?
-  createdAt  DateTime @default(now())
-  component  Component? @relation(fields: [componentId], references: [id], onDelete: SetNull)
+  id          Int       @id @default(autoincrement())
+  type        String    @default("MODEL")
+  modelName   String
+  boundingX   Float     @default(0)
+  boundingY   Float     @default(0)
+  boundingZ   Float     @default(0)
+  bodies      Int       @default(0)
+  components  String    @default("[]")
+  notes       String?
+  imageData   String?
+  createdAt   DateTime  @default(now())
+  component   Component? @relation(fields: [componentId], references: [id], onDelete: Cascade)
   componentId Int?
 
   @@index([componentId])

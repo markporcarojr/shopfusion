@@ -7,6 +7,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ComponentActions } from "../ComponentActions";
 import { FusionLogActions } from "./FusionLogActions";
+import { PDFViewer } from "@/components/pdf-viewer";
 
 export const dynamic = "force-dynamic";
 
@@ -176,13 +177,7 @@ export default async function ComponentDetailPage({
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {log.imageData && (
-                      <div className="border border-border rounded overflow-hidden">
-                        <iframe
-                          src={`data:application/pdf;base64,${log.imageData}`}
-                          className="w-full h-96 border-0"
-                          title={log.modelName}
-                        />
-                      </div>
+                      <PDFViewer data={log.imageData} title={log.modelName} />
                     )}
                     <div className="flex items-center justify-between">
                       <div className="flex flex-wrap gap-1">
