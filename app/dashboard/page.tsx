@@ -59,13 +59,14 @@ export default async function DashboardPage() {
     .filter((j) => j.status === "ACTIVE")
     .reduce((acc, j) => acc + (j.hoursWorked ?? 0), 0);
 
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-sm">ShopFusion</p>
+          <p className="text-muted-foreground text-sm">RC Fluid Power Inc.</p>
         </div>
       </div>
 
