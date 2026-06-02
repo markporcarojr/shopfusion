@@ -1,21 +1,22 @@
 "use client";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Briefcase, Clock, Box } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
+import { Box, Briefcase, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -55,7 +56,10 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-4">
-        <UserButton />
+        <div className="flex items-center justify-between">
+          <ThemeToggle />
+          <UserButton />
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
