@@ -76,11 +76,14 @@ export default async function JobDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
+          <p className="text-2xl font tracking-tight">
+            {job.customerName.toLocaleUpperCase()}
+          </p>
           <h1 className="text-2xl font-bold tracking-tight">
-            {job.customerName}
+            {job.jobNumber ? `#${job.jobNumber}` : "No Job Number"}
           </h1>
           {job.description && (
-            <p className="text-muted-foreground text-sm mt-1">
+            <p className="text-muted-foreground mt-1">
               {job.description}
             </p>
           )}

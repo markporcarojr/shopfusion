@@ -10,17 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Pencil, Trash2 } from "lucide-react";
 
 interface Props {
@@ -70,7 +60,6 @@ export function ComponentActions({ component }: Props) {
                 name="material"
                 defaultValue={component.material ?? ""}
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
-                placeholder="e.g. 4140 Steel"
               />
             </div>
             <div className="space-y-1">
@@ -80,7 +69,6 @@ export function ComponentActions({ component }: Props) {
                 rows={3}
                 defaultValue={component.operations ?? ""}
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background resize-none"
-                placeholder="e.g. Turn OD, bore ID"
               />
             </div>
             <div className="space-y-1">
@@ -93,39 +81,22 @@ export function ComponentActions({ component }: Props) {
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
               <Button type="submit">Save</Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Component?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete {component.name} and all its Fusion logs. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => deleteComponent(component.id, component.jobId)}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        title="Delete Component?"
+        description={`This will permanently delete ${component.name} and all its Fusion logs.`}
+        onConfirm={() => deleteComponent(component.id, component.jobId)}
+      >
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
+      </ConfirmDialog>
     </div>
   );
 }

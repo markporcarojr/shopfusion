@@ -21,7 +21,7 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Jobs", href: "/jobs", icon: Briefcase },
-  { label: "Fusion", href: "/fusion", icon: Box },
+  { label: "Drawings & Models", href: "/fusion", icon: Box },
 ];
 
 export function AppSidebar() {

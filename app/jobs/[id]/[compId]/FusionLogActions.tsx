@@ -10,17 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Pencil, Trash2 } from "lucide-react";
 
 interface Props {
@@ -61,43 +51,26 @@ export function FusionLogActions({ log }: Props) {
                 rows={4}
                 defaultValue={log.notes ?? ""}
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background resize-none"
-                placeholder="Add notes about this model or drawing..."
+                placeholder="Add notes..."
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
               <Button type="submit">Save</Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Fusion Log?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete {log.modelName}. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => deleteFusionLog(log.id, log.componentId, log.jobId)}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        title="Delete Fusion Log?"
+        description={`This will permanently delete ${log.modelName}.`}
+        onConfirm={() => deleteFusionLog(log.id, log.componentId, log.jobId)}
+      >
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
+      </ConfirmDialog>
     </div>
   );
 }

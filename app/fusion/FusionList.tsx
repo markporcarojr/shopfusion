@@ -3,8 +3,19 @@
 import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, ArrowUpDown, Box, FileImage, ChevronDown, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Search,
+  ArrowUpDown,
+  Box,
+  FileImage,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import Link from "next/link";
+import { deleteFusionLog } from "@/app/actions/fusionLogs";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import { PDFViewer } from "@/components/pdf-viewer";
 
 type FusionLog = {
   id: number;
@@ -64,7 +75,7 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
           l.component?.job.customerName.toLowerCase().includes(q) ||
           String(l.component?.job.jobNumber ?? "").includes(q) ||
           l.component?.name.toLowerCase().includes(q) ||
-          l.notes?.toLowerCase().includes(q)
+          l.notes?.toLowerCase().includes(q),
       )
       .sort((a, b) => {
         let val = 0;
@@ -72,10 +83,11 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
         if (sortField === "type") val = a.type.localeCompare(b.type);
         if (sortField === "job")
           val = (a.component?.job.customerName ?? "").localeCompare(
-            b.component?.job.customerName ?? ""
+            b.component?.job.customerName ?? "",
           );
         if (sortField === "date")
-          val = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          val =
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         return sortDir === "asc" ? val : -val;
       });
   }, [logs, search, sortField, sortDir]);
@@ -123,11 +135,18 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
           {filtered.map((log, i) => {
             const isExpanded = expanded.has(log.id);
             const fusionComponents = (() => {
-              try { return JSON.parse(log.components); } catch { return []; }
+              try {
+                return JSON.parse(log.components);
+              } catch {
+                return [];
+              }
             })();
 
             return (
-              <div key={log.id} className={i !== 0 ? "border-t border-border" : ""}>
+              <div
+                key={log.id}
+                className={i !== 0 ? "border-t border-border" : ""}
+              >
                 {/* Row */}
                 <div
                   className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors cursor-pointer"
@@ -154,10 +173,10 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                     {log.modelName}
                   </span>
 
-                  {/* Stats */}
+                  {/* Stats + Delete */}
                   <div className="flex items-center gap-3 shrink-0">
                     {log.component?.job && (
-                      <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+                      <span className="text-xs text-muted-foreground truncate max-w-30">
                         {log.component.job.customerName}
                         {log.component.job.jobNumber
                           ? ` · #${log.component.job.jobNumber}`
@@ -170,6 +189,26 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                     <span className="text-xs text-muted-foreground">
                       {new Date(log.createdAt).toLocaleDateString()}
                     </span>
+                    <ConfirmDialog
+                      title="Delete this log?"
+                      description={`This will permanently delete ${log.modelName}.`}
+                      onConfirm={() =>
+                        deleteFusionLog(
+                          log.id,
+                          log.component?.id ?? 0,
+                          log.component?.job.id ?? 0,
+                        )
+                      }
+                    >
+                      <Button
+                        variant={"destructive"}
+                        size="sm"
+                        className="h-6 text-xs text-destructive hover:text-destructive px-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Delete
+                      </Button>
+                    </ConfirmDialog>
                   </div>
                 </div>
 
@@ -179,27 +218,25 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                     {/* Dimensions */}
                     {log.type === "MODEL" && (
                       <p className="text-xs text-muted-foreground font-mono">
-                        {log.boundingX}" × {log.boundingY}" × {log.boundingZ}"
-                        · {log.bodies} {log.bodies === 1 ? "body" : "bodies"}
+                        {log.boundingX}" × {log.boundingY}" × {log.boundingZ}" ·{" "}
+                        {log.bodies} {log.bodies === 1 ? "body" : "bodies"}
                       </p>
                     )}
 
                     {/* PDF */}
                     {log.imageData && (
-                      <div className="border border-border rounded overflow-hidden">
-                        <iframe
-                          src={`data:application/pdf;base64,${log.imageData}`}
-                          className="w-full h-96 border-0"
-                          title={log.modelName}
-                        />
-                      </div>
+                      <PDFViewer data={log.imageData} title={log.modelName} />
                     )}
 
                     {/* Components */}
                     {fusionComponents.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {fusionComponents.map((c: string) => (
-                          <Badge key={c} variant="secondary" className="text-xs">
+                          <Badge
+                            key={c}
+                            variant="secondary"
+                            className="text-xs"
+                          >
                             {c}
                           </Badge>
                         ))}
@@ -208,7 +245,9 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
 
                     {/* Notes */}
                     {log.notes && (
-                      <p className="text-xs text-muted-foreground">{log.notes}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {log.notes}
+                      </p>
                     )}
 
                     {/* Link to component */}

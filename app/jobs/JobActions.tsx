@@ -1,17 +1,7 @@
 "use client";
 
-import { deleteJob, updateJob } from "@/app/actions/jobs";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { useState } from "react";
+import { updateJob, deleteJob } from "@/app/actions/jobs";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,8 +10,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
 
 interface Props {
   job: {
@@ -45,11 +35,7 @@ export function JobActions({ job }: Props) {
     <div className="flex items-center gap-1">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
             <Pencil className="w-3.5 h-3.5" />
           </Button>
         </DialogTrigger>
@@ -76,7 +62,6 @@ export function JobActions({ job }: Props) {
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
               />
             </div>
-
             <div className="space-y-1">
               <label className="text-sm font-medium">Description</label>
               <input
@@ -85,50 +70,34 @@ export function JobActions({ job }: Props) {
                 className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
               />
             </div>
-
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Hours Worked</label>
+              <input
+                name="hoursWorked"
+                type="number"
+                step="0.25"
+                min="0"
+                defaultValue={job.hoursWorked ?? ""}
+                className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
+              />
+            </div>
             <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setOpen(false)}
-              >
-                Cancel
-              </Button>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
               <Button type="submit">Save</Button>
             </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-destructive"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Job?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete {job.customerName} and all associated
-              time entries. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => deleteJob(job.id)}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        title="Delete Job?"
+        description={`This will permanently delete ${job.customerName} and all associated components, time entries and Fusion logs.`}
+        onConfirm={() => deleteJob(job.id)}
+      >
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
+      </ConfirmDialog>
     </div>
   );
 }
