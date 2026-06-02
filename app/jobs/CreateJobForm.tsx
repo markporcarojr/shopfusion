@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { useState } from "react";
+import { MaterialSelect } from "@/components/material-select";
 
 export function CreateJobForm() {
   const [open, setOpen] = useState(false);
@@ -39,7 +40,7 @@ export function CreateJobForm() {
               name="customerName"
               required
               className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
-              placeholder="e.g. Acme Corp"
+              placeholder="e.g. Bristol"
             />
           </div>
           <div className="space-y-1">
@@ -48,16 +49,12 @@ export function CreateJobForm() {
               name="jobNumber"
               type="number"
               className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
-              placeholder="e.g. 2026047"
+              placeholder="e.g. 33333"
             />
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium">Material</label>
-            <input
-              name="material"
-              className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
-              placeholder="e.g. 6061-T6 Aluminum, 4140 Steel"
-            />
+            <MaterialSelect name="material" />
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium">Hours Worked</label>

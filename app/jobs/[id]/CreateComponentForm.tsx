@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
+import { MaterialSelect } from "@/components/material-select";
 
 export function CreateComponentForm({ jobId }: { jobId: number }) {
   const [open, setOpen] = useState(false);
@@ -44,11 +45,7 @@ export function CreateComponentForm({ jobId }: { jobId: number }) {
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium">Material</label>
-            <input
-              name="material"
-              className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
-              placeholder="e.g. 4140 Steel, 6061 Aluminum"
-            />
+            <MaterialSelect name="material" />
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium">Operations</label>
@@ -69,7 +66,11 @@ export function CreateComponentForm({ jobId }: { jobId: number }) {
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setOpen(false)}
+            >
               Cancel
             </Button>
             <Button type="submit">Add</Button>

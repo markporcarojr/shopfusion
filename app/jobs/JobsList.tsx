@@ -160,7 +160,7 @@ export function JobsList({ jobs }: { jobs: Job[] }) {
                   </span>
 
                   {/* Job number */}
-                  <span className="text-xs font-mono text-muted-foreground w-20 shrink-0">
+                  <span className="text-sm font-mono text-muted-foreground w-20 shrink-0">
                     {job.jobNumber ? `#${job.jobNumber}` : "—"}
                   </span>
 

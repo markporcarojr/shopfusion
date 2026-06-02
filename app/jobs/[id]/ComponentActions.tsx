@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Pencil, Trash2 } from "lucide-react";
+import { MaterialSelect } from "@/components/material-select";
 
 interface Props {
   component: {
@@ -36,7 +37,11 @@ export function ComponentActions({ component }: Props) {
     <div className="flex items-center gap-1">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+          >
             <Pencil className="w-3.5 h-3.5" />
           </Button>
         </DialogTrigger>
@@ -56,10 +61,9 @@ export function ComponentActions({ component }: Props) {
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium">Material</label>
-              <input
+              <MaterialSelect
                 name="material"
-                defaultValue={component.material ?? ""}
-                className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
+                defaultValue={component.material}
               />
             </div>
             <div className="space-y-1">
@@ -81,7 +85,13 @@ export function ComponentActions({ component }: Props) {
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
               <Button type="submit">Save</Button>
             </div>
           </form>
@@ -93,7 +103,11 @@ export function ComponentActions({ component }: Props) {
         description={`This will permanently delete ${component.name} and all its Fusion logs.`}
         onConfirm={() => deleteComponent(component.id, component.jobId)}
       >
-        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+        >
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
       </ConfirmDialog>
