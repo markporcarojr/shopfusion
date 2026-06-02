@@ -1,26 +1,28 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Search,
-  ArrowUpDown,
-  Box,
-  FileImage,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
-import Link from "next/link";
 import { deleteFusionLog } from "@/app/actions/fusionLogs";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PDFViewer } from "@/components/pdf-viewer";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  ArrowUpDown,
+  Box,
+  ChevronDown,
+  ChevronRight,
+  FileImage,
+  Search,
+} from "lucide-react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 
 type FusionLog = {
   id: number;
   type: string;
   modelName: string;
+  revision: string | null;
+  sheetSize: string | null;
   boundingX: number;
   boundingY: number;
   boundingZ: number;
@@ -221,6 +223,22 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                         {log.boundingX}" × {log.boundingY}" × {log.boundingZ}" ·{" "}
                         {log.bodies} {log.bodies === 1 ? "body" : "bodies"}
                       </p>
+                    )}
+
+                    {/* Revision + Sheet Size */}
+                    {(log.revision || log.sheetSize) && (
+                      <div className="flex items-center gap-2">
+                        {log.revision && (
+                          <span className="text-xs text-muted-foreground border border-border px-2 py-0.5 rounded font-mono">
+                            Rev {log.revision}
+                          </span>
+                        )}
+                        {log.sheetSize && (
+                          <span className="text-xs text-muted-foreground border border-border px-2 py-0.5 rounded font-mono">
+                            {log.sheetSize} Sheet
+                          </span>
+                        )}
+                      </div>
                     )}
 
                     {/* PDF */}

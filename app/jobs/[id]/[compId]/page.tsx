@@ -140,20 +140,34 @@ export default async function ComponentDetailPage({
               return (
                 <Card key={log.id}>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <div className="flex items-center gap-3">
-                      {log.type === "DRAWING" ? (
-                        <FileImage className="w-4 h-4 text-orange-500" />
-                      ) : (
-                        <Box className="w-4 h-4 text-orange-500" />
+                    <div className="flex items-center gap-2">
+                      {log.revision && (
+                        <span className="text-xs text-muted-foreground border border-border px-2 py-0.5 rounded font-mono">
+                          Rev {log.revision}
+                        </span>
                       )}
-                      <div>
-                        <CardTitle className="text-base">
-                          {log.modelName}
-                        </CardTitle>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {new Date(log.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
+                      {log.sheetSize && (
+                        <span className="text-xs text-muted-foreground border border-border px-2 py-0.5 rounded font-mono">
+                          {log.sheetSize} Sheet
+                        </span>
+                      )}
+                      {log.type === "MODEL" && (
+                        <span className="text-xs text-muted-foreground font-mono">
+                          {log.boundingX}" × {log.boundingY}" × {log.boundingZ}"
+                        </span>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        {log.type === "DRAWING" ? "Drawing" : "Model"}
+                      </Badge>
+                      <FusionLogActions
+                        log={{
+                          id: log.id,
+                          notes: log.notes,
+                          modelName: log.modelName,
+                          componentId: component.id,
+                          jobId: component.job.id,
+                        }}
+                      />
                     </div>
                     <div className="flex items-center gap-2">
                       {log.type === "MODEL" && (

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,12 +16,13 @@ export async function POST(req: NextRequest) {
       imageData,
       material,
       revision,
+      sheetSize,
     } = body;
 
     if (!modelName) {
       return NextResponse.json(
         { error: "modelName is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -75,13 +76,13 @@ export async function POST(req: NextRequest) {
       data: {
         type: type || "MODEL",
         modelName: String(modelName),
+        revision: revision ? String(revision) : null,
+        sheetSize: sheetSize ? String(sheetSize) : null,
         bodies: Number(bodies) || 0,
         boundingX: Number(boundingBox?.x) || 0,
         boundingY: Number(boundingBox?.y) || 0,
         boundingZ: Number(boundingBox?.z) || 0,
-        components: JSON.stringify(
-          Array.isArray(components) ? components : []
-        ),
+        components: JSON.stringify(Array.isArray(components) ? components : []),
         notes: notes ? String(notes) : null,
         imageData: imageData ? String(imageData) : null,
         componentId: component?.id ?? null,
@@ -90,13 +91,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       { success: true, id: log.id, jobId: job?.id ?? null },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("[fusion/log] Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

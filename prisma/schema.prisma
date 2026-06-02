@@ -65,6 +65,8 @@ model FusionLog {
   id          Int       @id @default(autoincrement())
   type        String    @default("MODEL")
   modelName   String
+  revision    String?
+  sheetSize   String?
   boundingX   Float     @default(0)
   boundingY   Float     @default(0)
   boundingZ   Float     @default(0)
