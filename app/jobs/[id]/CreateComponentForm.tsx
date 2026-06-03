@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { createComponent } from "@/app/actions/components";
+import { MaterialSelect } from "@/components/material-select";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
-import { MaterialSelect } from "@/components/material-select";
+import { useState } from "react";
 
 export function CreateComponentForm({ jobId }: { jobId: number }) {
   const [open, setOpen] = useState(false);
@@ -46,6 +46,20 @@ export function CreateComponentForm({ jobId }: { jobId: number }) {
           <div className="space-y-1">
             <label className="text-sm font-medium">Material</label>
             <MaterialSelect name="material" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Stock Type</label>
+            <select
+              name="stockType"
+              defaultValue="AUTO"
+              className="w-full border border-border rounded px-3 py-2 text-sm bg-background"
+            >
+              <option value="AUTO">Auto Detect</option>
+              <option value="ROUND_BAR">Round Bar</option>
+              <option value="TUBE">Tube</option>
+              <option value="PLATE">Plate</option>
+              <option value="SQUARE_BAR">Square Bar</option>
+            </select>
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium">Operations</label>

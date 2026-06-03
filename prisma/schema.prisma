@@ -39,6 +39,7 @@ model Component {
   id         Int      @id @default(autoincrement())
   name       String
   material   String?
+  stockType  String   @default("AUTO")
   operations String?
   notes      String?
   job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)

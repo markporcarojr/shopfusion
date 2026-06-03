@@ -8,6 +8,7 @@ import { notFound, redirect } from "next/navigation";
 import { ComponentActions } from "../ComponentActions";
 import { FusionLogActions } from "./FusionLogActions";
 import { PDFViewer } from "@/components/pdf-viewer";
+import { suggestStock } from "@/lib/stock-suggestion";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,16 @@ export default async function ComponentDetailPage({
   });
 
   if (!component || component.job.userId !== user.id) notFound();
+
+  const latestModel = component.fusionLogs.find((l) => l.type === "MODEL");
+  const stockSuggestion = latestModel
+    ? suggestStock(
+        latestModel.boundingX,
+        latestModel.boundingY,
+        latestModel.boundingZ,
+        component.stockType
+      )
+    : null;
 
   return (
     <div className="p-6 space-y-6">
@@ -61,6 +72,7 @@ export default async function ComponentDetailPage({
         </div>
       </div>
 
+      {/* Stats */}
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -82,6 +94,26 @@ export default async function ComponentDetailPage({
         </Card>
       </div>
 
+      {/* Stock Suggestion */}
+      {stockSuggestion && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Suggested Stock</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              <span className="text-orange-500 font-mono font-bold text-lg">
+                {stockSuggestion.label}
+              </span>
+              <Badge variant="outline" className="text-xs">
+                {stockSuggestion.type.replace("_", " ")}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Operations */}
       {component.operations && (
         <Card>
           <CardHeader>
@@ -95,6 +127,7 @@ export default async function ComponentDetailPage({
         </Card>
       )}
 
+      {/* Notes */}
       {component.notes && (
         <Card>
           <CardHeader>
@@ -106,6 +139,7 @@ export default async function ComponentDetailPage({
         </Card>
       )}
 
+      {/* Fusion Logs */}
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Fusion Logs</h2>
 

@@ -34,7 +34,7 @@ export async function createComponent(jobId: number, formData: FormData) {
 export async function updateComponent(
   componentId: number,
   jobId: number,
-  formData: FormData
+  formData: FormData,
 ) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -46,12 +46,14 @@ export async function updateComponent(
   const material = formData.get("material") as string;
   const operations = formData.get("operations") as string;
   const notes = formData.get("notes") as string;
+  const stockType = formData.get("stockType") as string;
 
   await prisma.component.update({
     where: { id: componentId },
     data: {
       name,
       material: material || null,
+      stockType: stockType || "AUTO",
       operations: operations || null,
       notes: notes || null,
     },
