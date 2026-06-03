@@ -167,7 +167,7 @@ def get_physical_properties():
         props = root.physicalProperties
 
         # Convert units
-        mass_lbs = round(props.mass / 453.592, 4)  # grams to lbs
+        mass_lbs = round(props.mass / 453592, 4)  # grams to lbs
         volume_in3 = round(props.volume / 16.387, 4)  # cm³ to in³
         area_in2 = round(props.area / 6.452, 4)  # cm² to in²
 
