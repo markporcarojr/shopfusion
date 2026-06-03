@@ -17,6 +17,9 @@ export async function POST(req: NextRequest) {
       material,
       revision,
       sheetSize,
+      mass,
+      volume,
+      surfaceArea,
     } = body;
 
     if (!modelName) {
@@ -78,6 +81,9 @@ export async function POST(req: NextRequest) {
         modelName: String(modelName),
         revision: revision ? String(revision) : null,
         sheetSize: sheetSize ? String(sheetSize) : null,
+        mass: mass ? Number(mass) : null,
+        volume: volume ? Number(volume) : null,
+        surfaceArea: surfaceArea ? Number(surfaceArea) : null,
         bodies: Number(bodies) || 0,
         boundingX: Number(boundingBox?.x) || 0,
         boundingY: Number(boundingBox?.y) || 0,

@@ -67,6 +67,9 @@ model FusionLog {
   modelName   String
   revision    String?
   sheetSize   String?
+  mass        Float?
+  volume      Float?
+  surfaceArea Float?
   boundingX   Float     @default(0)
   boundingY   Float     @default(0)
   boundingZ   Float     @default(0)

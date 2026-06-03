@@ -35,7 +35,6 @@ export default async function ComponentDetailPage({
 
   return (
     <div className="p-6 space-y-6">
-      {/* Back */}
       <Link
         href={`/jobs/${id}`}
         className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -44,12 +43,9 @@ export default async function ComponentDetailPage({
         Back to {component.job.customerName}
       </Link>
 
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {component.name}
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">{component.name}</h1>
           <p className="text-muted-foreground text-sm mt-1">
             {component.job.customerName}
             {component.job.jobNumber ? ` · #${component.job.jobNumber}` : ""}
@@ -65,16 +61,13 @@ export default async function ComponentDetailPage({
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Fusion Logs</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {component.fusionLogs.length}
-            </div>
+            <div className="text-2xl font-bold">{component.fusionLogs.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -89,7 +82,6 @@ export default async function ComponentDetailPage({
         </Card>
       </div>
 
-      {/* Operations */}
       {component.operations && (
         <Card>
           <CardHeader>
@@ -103,7 +95,6 @@ export default async function ComponentDetailPage({
         </Card>
       )}
 
-      {/* Notes */}
       {component.notes && (
         <Card>
           <CardHeader>
@@ -115,7 +106,6 @@ export default async function ComponentDetailPage({
         </Card>
       )}
 
-      {/* Fusion Logs */}
       <div className="space-y-3">
         <h2 className="text-lg font-semibold">Fusion Logs</h2>
 
@@ -130,24 +120,27 @@ export default async function ComponentDetailPage({
           <div className="space-y-4">
             {component.fusionLogs.map((log) => {
               const fusionComponents = (() => {
-                try {
-                  return JSON.parse(log.components);
-                } catch {
-                  return [];
-                }
+                try { return JSON.parse(log.components); }
+                catch { return []; }
               })();
 
               return (
                 <Card key={log.id}>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {log.type === "DRAWING" ? (
+                        <FileImage className="w-4 h-4 text-orange-500 shrink-0" />
+                      ) : (
+                        <Box className="w-4 h-4 text-orange-500 shrink-0" />
+                      )}
+                      <span className="font-medium text-sm">{log.modelName}</span>
                       {log.revision && (
-                        <span className="text-xs text-muted-foreground border border-border px-2 py-0.5 rounded font-mono">
+                        <span className="text-xs border border-border px-2 py-0.5 rounded font-mono text-muted-foreground">
                           Rev {log.revision}
                         </span>
                       )}
                       {log.sheetSize && (
-                        <span className="text-xs text-muted-foreground border border-border px-2 py-0.5 rounded font-mono">
+                        <span className="text-xs border border-border px-2 py-0.5 rounded font-mono text-muted-foreground">
                           {log.sheetSize} Sheet
                         </span>
                       )}
@@ -159,25 +152,11 @@ export default async function ComponentDetailPage({
                       <Badge variant="outline" className="text-xs">
                         {log.type === "DRAWING" ? "Drawing" : "Model"}
                       </Badge>
-                      <FusionLogActions
-                        log={{
-                          id: log.id,
-                          notes: log.notes,
-                          modelName: log.modelName,
-                          componentId: component.id,
-                          jobId: component.job.id,
-                        }}
-                      />
                     </div>
-                    <div className="flex items-center gap-2">
-                      {log.type === "MODEL" && (
-                        <span className="text-xs text-muted-foreground font-mono">
-                          {log.boundingX}" × {log.boundingY}" × {log.boundingZ}"
-                        </span>
-                      )}
-                      <Badge variant="outline" className="text-xs">
-                        {log.type === "DRAWING" ? "Drawing" : "Model"}
-                      </Badge>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(log.createdAt).toLocaleDateString()}
+                      </span>
                       <FusionLogActions
                         log={{
                           id: log.id,
@@ -193,24 +172,43 @@ export default async function ComponentDetailPage({
                     {log.imageData && (
                       <PDFViewer data={log.imageData} title={log.modelName} />
                     )}
-                    <div className="flex items-center justify-between">
+
+                    {(log.mass || log.volume || log.surfaceArea) && (
+                      <div className="grid grid-cols-3 gap-2">
+                        {log.mass && (
+                          <div className="bg-accent/50 rounded px-3 py-2 text-center">
+                            <div className="text-xs text-muted-foreground">Mass</div>
+                            <div className="text-sm font-mono font-medium">{log.mass} lbs</div>
+                          </div>
+                        )}
+                        {log.volume && (
+                          <div className="bg-accent/50 rounded px-3 py-2 text-center">
+                            <div className="text-xs text-muted-foreground">Volume</div>
+                            <div className="text-sm font-mono font-medium">{log.volume} in³</div>
+                          </div>
+                        )}
+                        {log.surfaceArea && (
+                          <div className="bg-accent/50 rounded px-3 py-2 text-center">
+                            <div className="text-xs text-muted-foreground">Surface Area</div>
+                            <div className="text-sm font-mono font-medium">{log.surfaceArea} in²</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {fusionComponents.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {fusionComponents.map((c: string) => (
-                          <Badge
-                            key={c}
-                            variant="secondary"
-                            className="text-xs"
-                          >
+                          <Badge key={c} variant="secondary" className="text-xs">
                             {c}
                           </Badge>
                         ))}
                       </div>
-                      {log.notes && (
-                        <span className="text-xs text-muted-foreground">
-                          {log.notes}
-                        </span>
-                      )}
-                    </div>
+                    )}
+
+                    {log.notes && (
+                      <p className="text-xs text-muted-foreground">{log.notes}</p>
+                    )}
                   </CardContent>
                 </Card>
               );

@@ -157,6 +157,26 @@ class CommandExecuteHandler(adsk.core.CommandEventHandler):
             _ui.messageBox(f"ShopFusion execute error:\n{traceback.format_exc()}")
 
 
+def get_physical_properties():
+    try:
+        design = adsk.fusion.Design.cast(_app.activeProduct)
+        if not design:
+            return None, None, None
+
+        root = design.rootComponent
+        props = root.physicalProperties
+
+        # Convert units
+        mass_lbs = round(props.mass / 453.592, 4)  # grams to lbs
+        volume_in3 = round(props.volume / 16.387, 4)  # cm³ to in³
+        area_in2 = round(props.area / 6.452, 4)  # cm² to in²
+
+        return mass_lbs, volume_in3, area_in2
+
+    except Exception:
+        return None, None, None
+
+
 def build_drawing_payload(part_name, job_number, component_name, revision, notes):
     try:
         image_data = export_drawing_as_pdf()
@@ -218,6 +238,8 @@ def build_model_payload(part_name, job_number, component_name, revision, notes):
 
         material_str = ", ".join(materials) if materials else None
 
+        mass, volume, surface_area = get_physical_properties()
+
         return {
             "type": "MODEL",
             "modelName": part_name,
@@ -227,12 +249,16 @@ def build_model_payload(part_name, job_number, component_name, revision, notes):
             "sheetSize": None,
             "notes": notes,
             "material": material_str,
+            "mass": mass,
+            "volume": volume,
+            "surfaceArea": surface_area,
             "bodies": len(body_names),
             "boundingBox": {"x": x_max, "y": y_max, "z": z_max},
             "components": component_names,
             "imageData": None,
             "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         }
+
     except Exception:
         _ui.messageBox(f"Error building model payload:\n{traceback.format_exc()}")
         return None
