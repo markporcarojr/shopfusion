@@ -43,7 +43,7 @@ type FusionLog = {
   } | null;
 };
 
-type SortField = "date" | "name" | "type" | "job";
+type SortField = "date" | "name" | "customer" | "jobNumber";
 
 export function FusionList({ logs }: { logs: FusionLog[] }) {
   const [search, setSearch] = useState("");
@@ -82,11 +82,14 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
       .sort((a, b) => {
         let val = 0;
         if (sortField === "name") val = a.modelName.localeCompare(b.modelName);
-        if (sortField === "type") val = a.type.localeCompare(b.type);
-        if (sortField === "job")
+        if (sortField === "customer")
           val = (a.component?.job.customerName ?? "").localeCompare(
             b.component?.job.customerName ?? "",
           );
+        if (sortField === "jobNumber")
+          val =
+            (a.component?.job.jobNumber ?? 0) -
+            (b.component?.job.jobNumber ?? 0);
         if (sortField === "date")
           val =
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -102,7 +105,7 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by model name, customer, job number..."
+          placeholder="Search by customer, part name, job number..."
           className="pl-9"
         />
       </div>
@@ -110,7 +113,7 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
       {/* Sort bar */}
       <div className="flex items-center gap-1 text-xs text-muted-foreground">
         <span className="mr-2">Sort:</span>
-        {(["date", "name", "type", "job"] as SortField[]).map((f) => (
+        {(["date", "name", "customer", "jobNumber"] as SortField[]).map((f) => (
           <button
             key={f}
             onClick={() => toggleSort(f)}
@@ -120,7 +123,9 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                 : "border-border hover:border-zinc-500"
             }`}
           >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
+            {f === "jobNumber"
+              ? "Job #"
+              : f.charAt(0).toUpperCase() + f.slice(1)}
             {sortField === f && <ArrowUpDown className="w-3 h-3" />}
           </button>
         ))}
@@ -170,21 +175,22 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                     <Box className="w-4 h-4 text-orange-500 shrink-0" />
                   )}
 
-                  {/* Model name */}
+                  {/* Customer name - primary */}
                   <span className="text-sm font-medium flex-1 truncate">
-                    {log.modelName}
+                    {log.component?.job
+                      ? `${log.component.job.customerName}${
+                          log.component.job.jobNumber
+                            ? ` · #${log.component.job.jobNumber}`
+                            : ""
+                        }`
+                      : "—"}
                   </span>
 
                   {/* Stats + Delete */}
                   <div className="flex items-center gap-3 shrink-0">
-                    {log.component?.job && (
-                      <span className="text-xs text-muted-foreground truncate max-w-30">
-                        {log.component.job.customerName}
-                        {log.component.job.jobNumber
-                          ? ` · #${log.component.job.jobNumber}`
-                          : ""}
-                      </span>
-                    )}
+                    <span className="text-xs text-muted-foreground truncate max-w-40">
+                      {log.modelName}
+                    </span>
                     <Badge variant="outline" className="text-xs">
                       {log.type === "DRAWING" ? "DWG" : "MDL"}
                     </Badge>
@@ -203,9 +209,9 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                       }
                     >
                       <Button
-                        variant={"destructive"}
+                        variant="destructive"
                         size="sm"
-                        className="h-6 text-xs text-destructive hover:text-destructive px-2"
+                        className="h-6 text-xs px-2"
                         onClick={(e) => e.stopPropagation()}
                       >
                         Delete

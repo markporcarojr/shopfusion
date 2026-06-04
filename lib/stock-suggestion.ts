@@ -1,11 +1,11 @@
-const ROUND_BAR_SIZES = [
-  0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1, 1.125, 1.25, 1.375, 1.5, 1.75, 2,
-  2.25, 2.5, 2.75, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 8, 9, 10, 12,
-];
+import {
+  ALRO_CATALOG,
+  nextStandardSize,
+  fractionToDecimal,
+  type StockSize,
+} from "./alro-catalog";
 
-function nextStandardRoundBar(diameter: number): number {
-  return ROUND_BAR_SIZES.find((s) => s >= diameter) ?? diameter;
-}
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
 
 function roundUpToEighth(value: number): number {
   return Math.ceil(value * 8) / 8;
@@ -17,116 +17,162 @@ function roundUpToHalf(value: number): number {
 
 function isCylindrical(x: number, y: number, z: number): boolean {
   const dims = [x, y, z].sort((a, b) => a - b);
-  // Check if the two largest dimensions are equal (circular cross section)
-  const ratio = dims[1] / dims[2];
-  return ratio >= 0.9;
+  if (dims[2] === 0) return false;
+  return dims[1] / dims[2] >= 0.9;
 }
 
-function isSquare(x: number, y: number): boolean {
-  if (x === 0 || y === 0) return false;
-  const ratio = Math.min(x, y) / Math.max(x, y);
-  return ratio >= 0.95; // within 5%
+function isSquare(x: number, y: number, z: number): boolean {
+  const dims = [x, y, z].sort((a, b) => a - b);
+  if (dims[2] === 0) return false;
+  return dims[1] / dims[2] >= 0.95 && dims[0] / dims[2] < 0.5;
 }
+
+function getMaterialCatalog(material: string | null): StockSize[] {
+  if (!material) return ALRO_CATALOG.steelRoundBar;
+  const m = material.toLowerCase();
+  if (m.includes("alum") || m.includes("6061") || m.includes("7075") || m.includes("2024")) {
+    return ALRO_CATALOG.alum6061RoundBar;
+  }
+  return ALRO_CATALOG.steelRoundBar;
+}
+
+function calcStockWeight(lbsPerFt: number, lengthInches: number): number {
+  return Math.round(lbsPerFt * (lengthInches / 12) * 100) / 100;
+}
+
+// ─── TYPES ────────────────────────────────────────────────────────────────────
 
 export type StockSuggestion = {
   type: "ROUND_BAR" | "TUBE" | "PLATE" | "SQUARE_BAR" | "UNKNOWN";
   label: string;
+  weightLbs: number | null;
   details: {
-    diameter?: number;
+    diameter?: string;
     length?: number;
     width?: number;
     height?: number;
     thickness?: number;
-    side?: number;
+    side?: string;
   };
 };
+
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 export function suggestStock(
   boundingX: number,
   boundingY: number,
   boundingZ: number,
   stockType: string = "AUTO",
+  material: string | null = null
 ): StockSuggestion | null {
   if (!boundingX || !boundingY || !boundingZ) return null;
 
-  const FACE_ALLOWANCE = 0.25; // 1/8" per end
+  const FACE_ALLOWANCE = 0.25;
   const OD_ALLOWANCE = 0.125;
   const PLATE_ALLOWANCE = 0.25;
 
-  // Manual overrides
+  const roundCatalog = getMaterialCatalog(material);
+  const squareCatalog = ALRO_CATALOG.steelSquareBar;
+
+  // ── TUBE ──
   if (stockType === "TUBE") {
-    const od = roundUpToEighth(Math.max(boundingX, boundingY) + OD_ALLOWANCE);
-    const length = roundUpToHalf(boundingZ + FACE_ALLOWANCE);
+    const diameter = Math.max(boundingX, boundingY, boundingZ);
+    const length = roundUpToHalf(Math.min(boundingX, boundingY, boundingZ) + FACE_ALLOWANCE);
+    const od = roundUpToEighth(diameter + OD_ALLOWANCE);
     return {
       type: "TUBE",
       label: `${od}" OD Tube × ${length}" Long`,
-      details: { diameter: od, length },
+      weightLbs: null,
+      details: { diameter: `${od}`, length },
     };
   }
 
+  // ── PLATE ──
   if (stockType === "PLATE") {
-    const width = roundUpToEighth(boundingX + PLATE_ALLOWANCE);
-    const height = roundUpToEighth(boundingY + PLATE_ALLOWANCE);
-    const thickness = roundUpToEighth(boundingZ + OD_ALLOWANCE);
+    const dims = [boundingX, boundingY, boundingZ].sort((a, b) => b - a);
+    const width = roundUpToEighth(dims[0] + PLATE_ALLOWANCE);
+    const height = roundUpToEighth(dims[1] + PLATE_ALLOWANCE);
+    const thickness = roundUpToEighth(dims[2] + OD_ALLOWANCE);
     return {
       type: "PLATE",
       label: `${width}" × ${height}" × ${thickness}" Plate`,
+      weightLbs: null,
       details: { width, height, thickness },
     };
   }
 
+  // ── SQUARE BAR ──
   if (stockType === "SQUARE_BAR") {
-    const side = roundUpToEighth(Math.max(boundingX, boundingY) + OD_ALLOWANCE);
-    const length = roundUpToHalf(boundingZ + FACE_ALLOWANCE);
+    const dims = [boundingX, boundingY, boundingZ].sort((a, b) => b - a);
+    const neededSide = dims[0] + OD_ALLOWANCE;
+    const match = nextStandardSize(squareCatalog, neededSide);
+    const length = roundUpToHalf(dims[2] + FACE_ALLOWANCE);
+    const weight = match ? calcStockWeight(match.lbsPerFt, length) : null;
+    const sideLabel = match ? match.size : `${roundUpToEighth(neededSide)}"`;
     return {
       type: "SQUARE_BAR",
-      label: `${side}" Square Bar × ${length}" Long`,
-      details: { side, length },
+      label: `${sideLabel}" Square Bar × ${length}" Long`,
+      weightLbs: weight,
+      details: { side: sideLabel, length },
     };
   }
 
+  // ── ROUND BAR (manual) ──
   if (stockType === "ROUND_BAR") {
-    const neededOD = Math.max(boundingX, boundingY) + OD_ALLOWANCE;
-    const diameter = nextStandardRoundBar(neededOD);
-    const length = roundUpToHalf(boundingZ + FACE_ALLOWANCE);
+    const dims = [boundingX, boundingY, boundingZ].sort((a, b) => b - a);
+    const neededOD = dims[0] + OD_ALLOWANCE;
+    const match = nextStandardSize(roundCatalog, neededOD);
+    const length = roundUpToHalf(dims[2] + FACE_ALLOWANCE);
+    const weight = match ? calcStockWeight(match.lbsPerFt, length) : null;
+    const diamLabel = match ? match.size : `${roundUpToEighth(neededOD)}"`;
     return {
       type: "ROUND_BAR",
-      label: `${diameter}" Ø Round Bar × ${length}" Long`,
-      details: { diameter, length },
+      label: `${diamLabel}" Ø Round Bar × ${length}" Long`,
+      weightLbs: weight,
+      details: { diameter: diamLabel, length },
     };
   }
 
-  // AUTO detection
+  // ── AUTO DETECT ──
   if (isCylindrical(boundingX, boundingY, boundingZ)) {
-    const diameter = Math.max(boundingX, boundingY, boundingZ);
-    const thickness = Math.min(boundingX, boundingY, boundingZ);
-    const neededOD = diameter + OD_ALLOWANCE;
-    const standardOD = nextStandardRoundBar(neededOD);
-    const length = roundUpToHalf(thickness + FACE_ALLOWANCE);
+    const dims = [boundingX, boundingY, boundingZ].sort((a, b) => b - a);
+    const neededOD = dims[0] + OD_ALLOWANCE;
+    const match = nextStandardSize(roundCatalog, neededOD);
+    const length = roundUpToHalf(dims[2] + FACE_ALLOWANCE);
+    const weight = match ? calcStockWeight(match.lbsPerFt, length) : null;
+    const diamLabel = match ? match.size : `${roundUpToEighth(neededOD)}"`;
     return {
       type: "ROUND_BAR",
-      label: `${standardOD}" Ø Round Bar × ${length}" Long`,
-      details: { diameter: standardOD, length },
+      label: `${diamLabel}" Ø Round Bar × ${length}" Long`,
+      weightLbs: weight,
+      details: { diameter: diamLabel, length },
     };
   }
 
-  if (isSquare(boundingX, boundingY) && Math.max(boundingX, boundingY) < 3) {
-    const side = roundUpToEighth(Math.max(boundingX, boundingY) + OD_ALLOWANCE);
-    const length = roundUpToHalf(boundingZ + FACE_ALLOWANCE);
+  if (isSquare(boundingX, boundingY, boundingZ)) {
+    const dims = [boundingX, boundingY, boundingZ].sort((a, b) => b - a);
+    const neededSide = dims[0] + OD_ALLOWANCE;
+    const match = nextStandardSize(squareCatalog, neededSide);
+    const length = roundUpToHalf(dims[2] + FACE_ALLOWANCE);
+    const weight = match ? calcStockWeight(match.lbsPerFt, length) : null;
+    const sideLabel = match ? match.size : `${roundUpToEighth(neededSide)}"`;
     return {
       type: "SQUARE_BAR",
-      label: `${side}" Square Bar × ${length}" Long`,
-      details: { side, length },
+      label: `${sideLabel}" Square Bar × ${length}" Long`,
+      weightLbs: weight,
+      details: { side: sideLabel, length },
     };
   }
 
   // Default to plate
-  const width = roundUpToEighth(boundingX + PLATE_ALLOWANCE);
-  const height = roundUpToEighth(boundingY + PLATE_ALLOWANCE);
-  const thickness = roundUpToEighth(boundingZ + OD_ALLOWANCE);
+  const dims = [boundingX, boundingY, boundingZ].sort((a, b) => b - a);
+  const width = roundUpToEighth(dims[0] + PLATE_ALLOWANCE);
+  const height = roundUpToEighth(dims[1] + PLATE_ALLOWANCE);
+  const thickness = roundUpToEighth(dims[2] + OD_ALLOWANCE);
   return {
     type: "PLATE",
     label: `${width}" × ${height}" × ${thickness}" Plate`,
+    weightLbs: null,
     details: { width, height, thickness },
   };
 }

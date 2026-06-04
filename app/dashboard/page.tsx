@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { AlertCircle, ArrowRight, Box, Briefcase, Clock } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { StatusChart } from "./StatusChart";
 
 export const dynamic = "force-dynamic";
 
@@ -54,11 +55,21 @@ export default async function DashboardPage() {
     }),
   ]);
 
+  const allJobs = await prisma.job.findMany({
+    where: { userId: user.id },
+    select: { status: true },
+  });
+
+  const statusCounts = {
+    active: allJobs.filter((j) => j.status === "ACTIVE").length,
+    paused: allJobs.filter((j) => j.status === "PAUSED").length,
+    done: allJobs.filter((j) => j.status === "DONE").length,
+  };
+
   const activeJobs = jobs.filter((j) => j.status === "ACTIVE").length;
   const totalHours = jobs
     .filter((j) => j.status === "ACTIVE")
     .reduce((acc, j) => acc + (j.hoursWorked ?? 0), 0);
-
 
   return (
     <div className="p-6 space-y-6">
@@ -157,40 +168,15 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Recent Time Entries */}
+        {/* Status Chart */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium">Recent Time</CardTitle>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Jobs by Status
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {recentTime.length === 0 ? (
-              <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                <AlertCircle className="w-4 h-4" />
-                No time logged yet
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {recentTime.map((entry) => (
-                  <Link key={entry.id} href={`/jobs/${entry.job.id}`}>
-                    <div className="flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors">
-                      <div className="flex-1 min-w-0">
-                        <span className="font-medium text-sm truncate block">
-                          {entry.job.customerName}
-                        </span>
-                        {entry.note && (
-                          <span className="text-xs text-muted-foreground truncate block">
-                            {entry.note}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-sm font-mono text-orange-500 shrink-0">
-                        {entry.hours}h
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
+            <StatusChart data={statusCounts} />
           </CardContent>
         </Card>
       </div>
