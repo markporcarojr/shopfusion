@@ -20,7 +20,7 @@ import { useMemo, useState } from "react";
 type FusionLog = {
   id: number;
   type: string;
-  modelName: string;
+  customerName: string;
   revision: string | null;
   sheetSize: string | null;
   boundingX: number;
@@ -43,7 +43,7 @@ type FusionLog = {
   } | null;
 };
 
-type SortField = "date" | "name" | "customer" | "jobNumber";
+type SortField = "date" | "status" | "customer" | "jobNumber";
 
 export function FusionList({ logs }: { logs: FusionLog[] }) {
   const [search, setSearch] = useState("");
@@ -73,7 +73,7 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
     return logs
       .filter(
         (l) =>
-          l.modelName.toLowerCase().includes(q) ||
+          l.customerName.toLowerCase().includes(q) ||
           l.component?.job.customerName.toLowerCase().includes(q) ||
           String(l.component?.job.jobNumber ?? "").includes(q) ||
           l.component?.name.toLowerCase().includes(q) ||
@@ -81,7 +81,6 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
       )
       .sort((a, b) => {
         let val = 0;
-        if (sortField === "name") val = a.modelName.localeCompare(b.modelName);
         if (sortField === "customer")
           val = (a.component?.job.customerName ?? "").localeCompare(
             b.component?.job.customerName ?? "",
@@ -189,7 +188,7 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                   {/* Stats + Delete */}
                   <div className="flex items-center gap-3 shrink-0">
                     <span className="text-xs text-muted-foreground truncate max-w-40">
-                      {log.modelName}
+                      {log.customerName}
                     </span>
                     <Badge variant="outline" className="text-xs">
                       {log.type === "DRAWING" ? "DWG" : "MDL"}
@@ -199,7 +198,7 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                     </span>
                     <ConfirmDialog
                       title="Delete this log?"
-                      description={`This will permanently delete ${log.modelName}.`}
+                      description={`This will permanently delete ${log.customerName}.`}
                       onConfirm={() =>
                         deleteFusionLog(
                           log.id,
@@ -249,7 +248,7 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
 
                     {/* PDF */}
                     {log.imageData && (
-                      <PDFViewer data={log.imageData} title={log.modelName} />
+                      <PDFViewer data={log.imageData} title={log.customerName} />
                     )}
 
                     {/* Components */}

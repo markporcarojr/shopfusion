@@ -18,15 +18,15 @@ model User {
 }
 
 model Job {
-  id           Int       @id @default(autoincrement())
+  id           Int      @id @default(autoincrement())
   jobNumber    Int?
   customerName String
   description  String?
   hoursWorked  Float?
-  status       String    @default("PAUSED")
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  user         User      @relation(fields: [userId], references: [id])
+  status       String   @default("PAUSED")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
   userId       Int
 
   components  Component[]
@@ -63,24 +63,24 @@ model TimeEntry {
 }
 
 model FusionLog {
-  id          Int       @id @default(autoincrement())
-  type        String    @default("MODEL")
-  modelName   String
-  revision    String?
-  sheetSize   String?
-  mass        Float?
-  volume      Float?
-  surfaceArea Float?
-  boundingX   Float     @default(0)
-  boundingY   Float     @default(0)
-  boundingZ   Float     @default(0)
-  bodies      Int       @default(0)
-  components  String    @default("[]")
-  notes       String?
-  imageData   String?
-  createdAt   DateTime  @default(now())
-  component   Component? @relation(fields: [componentId], references: [id], onDelete: Cascade)
-  componentId Int?
+  id           Int        @id @default(autoincrement())
+  type         String     @default("MODEL")
+  customerName String
+  revision     String?
+  sheetSize    String?
+  mass         Float?
+  volume       Float?
+  surfaceArea  Float?
+  boundingX    Float      @default(0)
+  boundingY    Float      @default(0)
+  boundingZ    Float      @default(0)
+  bodies       Int        @default(0)
+  components   String     @default("[]")
+  notes        String?
+  imageData    String?
+  createdAt    DateTime   @default(now())
+  component    Component? @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  componentId  Int?
 
   @@index([componentId])
 }

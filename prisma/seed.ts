@@ -86,7 +86,7 @@ async function main() {
       await prisma.fusionLog.create({
         data: {
           type: isDrawing ? "DRAWING" : "MODEL",
-          modelName: component.name,
+          customerName: component.name,
           revision: rand(["A", "B", "C"]),
           sheetSize: isDrawing ? rand(["B", "C", "D"]) : null,
           mass: Math.round(Math.random() * 10 * 1000) / 1000,

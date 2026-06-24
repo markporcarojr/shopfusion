@@ -214,7 +214,7 @@ export default async function DashboardPage() {
                   <div className="flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors">
                     <div className="flex-1 min-w-0">
                       <span className="font-medium text-sm truncate block">
-                        {log.modelName}
+                        {log.customerName}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {log.component?.job?.customerName ?? "—"}

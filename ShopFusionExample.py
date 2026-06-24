@@ -99,7 +99,7 @@ class CommandCreatedHandler(adsk.core.CommandCreatedEventHandler):
 
             doc_name = _app.activeDocument.name or ""
 
-            inputs.addStringValueInput("partName", "Part Name", doc_name)
+            inputs.addStringValueInput("customerName", "Customer Name", "")
             inputs.addStringValueInput("jobNumber", "Job Number", "")
             inputs.addStringValueInput("componentName", "Component Name", doc_name)
             inputs.addStringValueInput("revision", "Revision", "A")
@@ -117,23 +117,27 @@ class CommandExecuteHandler(adsk.core.CommandEventHandler):
     def notify(self, args):
         try:
             inputs = args.command.commandInputs
-            part_name = inputs.itemById("partName").value.strip()
+            customer_name = inputs.itemById("customerName").value.strip()
             job_number = inputs.itemById("jobNumber").value.strip()
             component_name = inputs.itemById("componentName").value.strip()
             revision = inputs.itemById("revision").value.strip()
             notes = inputs.itemById("notes").value.strip()
 
-            if not part_name:
-                _ui.messageBox("Part name is required.")
+            if not customer_name:
+                _ui.messageBox("Customer name is required.")
                 return
+
+            doc_name = _app.activeDocument.name or ""
+            if not component_name:
+                component_name = doc_name
 
             if is_drawing():
                 payload = build_drawing_payload(
-                    part_name, job_number, component_name, revision, notes
+                    customer_name, job_number, component_name, revision, notes
                 )
             else:
                 payload = build_model_payload(
-                    part_name, job_number, component_name, revision, notes
+                    customer_name, job_number, component_name, revision, notes
                 )
 
             if payload is None:
@@ -144,7 +148,7 @@ class CommandExecuteHandler(adsk.core.CommandEventHandler):
             if success:
                 _ui.messageBox(
                     f"✓ Logged to ShopFusion\n\n"
-                    f"Part: {payload['modelName']}\n"
+                    f"Customer: {payload['customerName']}\n"
                     f"Type: {payload['type']}\n"
                     f"Job: {payload.get('jobNumber') or '—'}\n"
                     f"Component: {payload.get('componentName') or '—'}\n"
@@ -177,16 +181,16 @@ def get_physical_properties():
         return None, None, None
 
 
-def build_drawing_payload(part_name, job_number, component_name, revision, notes):
+def build_drawing_payload(customer_name, job_number, component_name, revision, notes):
     try:
         image_data = export_drawing_as_pdf()
         sheet_size = get_sheet_size()
 
         return {
             "type": "DRAWING",
-            "modelName": part_name,
+            "customerName": customer_name,
             "jobNumber": job_number or None,
-            "componentName": component_name or part_name,
+            "componentName": component_name or customer_name,
             "revision": revision or None,
             "sheetSize": sheet_size,
             "notes": notes,
@@ -201,7 +205,7 @@ def build_drawing_payload(part_name, job_number, component_name, revision, notes
         return None
 
 
-def build_model_payload(part_name, job_number, component_name, revision, notes):
+def build_model_payload(customer_name, job_number, component_name, revision, notes):
     try:
         design = adsk.fusion.Design.cast(_app.activeProduct)
         if not design:
@@ -242,9 +246,9 @@ def build_model_payload(part_name, job_number, component_name, revision, notes):
 
         return {
             "type": "MODEL",
-            "modelName": part_name,
+            "customerName": customer_name,
             "jobNumber": job_number or None,
-            "componentName": component_name or part_name,
+            "componentName": component_name or customer_name,
             "revision": revision or None,
             "sheetSize": None,
             "notes": notes,

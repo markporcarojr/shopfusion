@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       jobNumber,
-      modelName,
+      customerName,
       componentName,
       type,
       bodies,
@@ -22,9 +22,9 @@ export async function POST(req: NextRequest) {
       surfaceArea,
     } = body;
 
-    if (!modelName) {
+    if (!customerName) {
       return NextResponse.json(
-        { error: "modelName is required" },
+        { error: "customerName is required" },
         { status: 400 },
       );
     }
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
           job = await prisma.job.create({
             data: {
               jobNumber: parseInt(jobNumber),
-              customerName: modelName,
+              customerName: customerName,
               description: `Created from Fusion 360`,
               userId: user.id,
               status: "ACTIVE",
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (job) {
-        const compName = componentName || modelName;
+        const compName = componentName || customerName;
         component = await prisma.component.findFirst({
           where: { jobId: job.id, name: compName },
         });
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     const log = await prisma.fusionLog.create({
       data: {
         type: type || "MODEL",
-        modelName: String(modelName),
+        customerName: String(customerName),
         revision: revision ? String(revision) : null,
         sheetSize: sheetSize ? String(sheetSize) : null,
         mass: mass ? Number(mass) : null,
