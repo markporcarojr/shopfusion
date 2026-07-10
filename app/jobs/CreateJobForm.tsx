@@ -12,12 +12,23 @@ import {
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { MaterialSelect } from "@/components/material-select";
+import {
+  ChecklistBuilder,
+  type ChecklistDraftItem,
+} from "./ChecklistBuilder";
 
 export function CreateJobForm() {
   const [open, setOpen] = useState(false);
+  const [checklist, setChecklist] = useState<ChecklistDraftItem[]>([]);
 
   async function handleSubmit(formData: FormData) {
+    // Inject checklist texts (in current drag order) as JSON
+    formData.set(
+      "checklist",
+      JSON.stringify(checklist.map((it) => it.text)),
+    );
     await createJob(formData);
+    setChecklist([]);
     setOpen(false);
   }
 
@@ -84,6 +95,10 @@ export function CreateJobForm() {
               placeholder="e.g. Center drill, 1/2 end mill, face mill 5-insert"
             />
           </div>
+
+          {/* Checklist */}
+          <ChecklistBuilder items={checklist} onChange={setChecklist} />
+
           <div className="flex justify-end gap-2">
             <Button
               type="button"

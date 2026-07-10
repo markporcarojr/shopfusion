@@ -3,17 +3,9 @@
 import { deleteFusionLog } from "@/app/actions/fusionLogs";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PDFViewer } from "@/components/pdf-viewer";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  ArrowUpDown,
-  Box,
-  ChevronDown,
-  ChevronRight,
-  FileImage,
-  Search,
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronRight, FileImage, Search } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -43,7 +35,7 @@ type FusionLog = {
   } | null;
 };
 
-type SortField = "date" | "status" | "customer" | "jobNumber";
+type SortField = "date" | "customer" | "jobNumber" | "partName";
 
 export function FusionList({ logs }: { logs: FusionLog[] }) {
   const [search, setSearch] = useState("");
@@ -73,11 +65,10 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
     return logs
       .filter(
         (l) =>
-          l.customerName.toLowerCase().includes(q) ||
           l.component?.job.customerName.toLowerCase().includes(q) ||
+          l.customerName.toLowerCase().includes(q) ||
           String(l.component?.job.jobNumber ?? "").includes(q) ||
-          l.component?.name.toLowerCase().includes(q) ||
-          l.notes?.toLowerCase().includes(q),
+          l.component?.name.toLowerCase().includes(q),
       )
       .sort((a, b) => {
         let val = 0;
@@ -89,6 +80,10 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
           val =
             (a.component?.job.jobNumber ?? 0) -
             (b.component?.job.jobNumber ?? 0);
+        if (sortField === "partName")
+          val = (a.component?.name ?? "").localeCompare(
+            b.component?.name ?? "",
+          );
         if (sortField === "date")
           val =
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -112,29 +107,33 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
       {/* Sort bar */}
       <div className="flex items-center gap-1 text-xs text-muted-foreground">
         <span className="mr-2">Sort:</span>
-        {(["date", "name", "customer", "jobNumber"] as SortField[]).map((f) => (
-          <button
-            key={f}
-            onClick={() => toggleSort(f)}
-            className={`flex items-center gap-1 px-2 py-1 rounded border transition-colors ${
-              sortField === f
-                ? "border-orange-500 text-orange-500"
-                : "border-border hover:border-zinc-500"
-            }`}
-          >
-            {f === "jobNumber"
-              ? "Job #"
-              : f.charAt(0).toUpperCase() + f.slice(1)}
-            {sortField === f && <ArrowUpDown className="w-3 h-3" />}
-          </button>
-        ))}
-        <span className="ml-auto">{filtered.length} logs</span>
+        {(["date", "customer", "jobNumber", "partName"] as SortField[]).map(
+          (f) => (
+            <button
+              key={f}
+              onClick={() => toggleSort(f)}
+              className={`flex items-center gap-1 px-2 py-1 rounded border transition-colors ${
+                sortField === f
+                  ? "border-orange-500 text-orange-500"
+                  : "border-border hover:border-zinc-500"
+              }`}
+            >
+              {f === "jobNumber"
+                ? "Job #"
+                : f === "partName"
+                  ? "Part"
+                  : f.charAt(0).toUpperCase() + f.slice(1)}
+              {sortField === f && <ArrowUpDown className="w-3 h-3" />}
+            </button>
+          ),
+        )}
+        <span className="ml-auto">{filtered.length} drawings</span>
       </div>
 
       {/* List */}
       {filtered.length === 0 ? (
         <div className="text-sm text-muted-foreground text-center py-8">
-          No logs match your search
+          No drawings match your search
         </div>
       ) : (
         <div className="border border-border rounded overflow-hidden">
@@ -168,11 +167,7 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                   </span>
 
                   {/* Type icon */}
-                  {log.type === "DRAWING" ? (
-                    <FileImage className="w-4 h-4 text-orange-500 shrink-0" />
-                  ) : (
-                    <Box className="w-4 h-4 text-orange-500 shrink-0" />
-                  )}
+                  <FileImage className="w-4 h-4 text-orange-500 shrink-0" />
 
                   {/* Customer name - primary */}
                   <span className="text-sm font-medium flex-1 truncate">
@@ -188,16 +183,13 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                   {/* Stats + Delete */}
                   <div className="flex items-center gap-3 shrink-0">
                     <span className="text-xs text-muted-foreground truncate max-w-40">
-                      {log.customerName}
+                      {log.component?.name ?? log.customerName}
                     </span>
-                    <Badge variant="outline" className="text-xs">
-                      {log.type === "DRAWING" ? "DWG" : "MDL"}
-                    </Badge>
                     <span className="text-xs text-muted-foreground">
                       {new Date(log.createdAt).toLocaleDateString()}
                     </span>
                     <ConfirmDialog
-                      title="Delete this log?"
+                      title="Delete this drawing?"
                       description={`This will permanently delete ${log.customerName}.`}
                       onConfirm={() =>
                         deleteFusionLog(
@@ -222,14 +214,6 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                 {/* Expanded */}
                 {isExpanded && (
                   <div className="px-11 pb-4 space-y-3 bg-accent/20">
-                    {/* Dimensions */}
-                    {log.type === "MODEL" && (
-                      <p className="text-xs text-muted-foreground font-mono">
-                        {log.boundingX}" × {log.boundingY}" × {log.boundingZ}" ·{" "}
-                        {log.bodies} {log.bodies === 1 ? "body" : "bodies"}
-                      </p>
-                    )}
-
                     {/* Revision + Sheet Size */}
                     {(log.revision || log.sheetSize) && (
                       <div className="flex items-center gap-2">
@@ -255,13 +239,12 @@ export function FusionList({ logs }: { logs: FusionLog[] }) {
                     {fusionComponents.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {fusionComponents.map((c: string) => (
-                          <Badge
+                          <span
                             key={c}
-                            variant="secondary"
-                            className="text-xs"
+                            className="text-xs text-muted-foreground border border-border px-2 py-0.5 rounded"
                           >
                             {c}
-                          </Badge>
+                          </span>
                         ))}
                       </div>
                     )}

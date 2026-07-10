@@ -13,6 +13,7 @@ export default async function FusionPage() {
   if (!user) redirect("/sign-in");
 
   const logs = await prisma.fusionLog.findMany({
+    where: { type: "DRAWING" },
     orderBy: { createdAt: "desc" },
     include: {
       component: {
@@ -25,12 +26,10 @@ export default async function FusionPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Drawings & Models
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">Drawings</h1>
           <p className="text-muted-foreground text-sm">
-            {logs.length} log{logs.length !== 1 ? "s" : ""} captured from Fusion
-            360
+            {logs.length} drawing{logs.length !== 1 ? "s" : ""} captured from
+            Fusion 360
           </p>
         </div>
         <div className="text-xs text-muted-foreground border border-border px-3 py-2 rounded font-mono">
