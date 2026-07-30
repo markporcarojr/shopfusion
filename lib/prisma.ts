@@ -1,18 +1,14 @@
 import { PrismaClient } from "../app/generated/prisma";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import path from "path";
-
-const dbPath = path.join(process.cwd(), "prisma", "shopfusion.db");
-
-const adapter = new PrismaBetterSqlite3({
-  url: `file:${dbPath}`,
-});
+import { PrismaNeon } from "@prisma/adapter-neon";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 export const prisma =
-  globalForPrisma.prisma ?? new PrismaClient({ adapter });
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    adapter: new PrismaNeon({ connectionString: process.env.DATABASE_URL! }),
+  });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

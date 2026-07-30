@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-import { AlertCircle, ArrowRight, Box, Briefcase, Clock } from "lucide-react";
+import { AlertCircle, ArrowRight, Box, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StatusChart } from "./StatusChart";
