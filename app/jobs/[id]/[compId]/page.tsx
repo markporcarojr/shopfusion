@@ -185,7 +185,7 @@ export default async function ComponentDetailPage({
                         <Box className="w-4 h-4 text-orange-500 shrink-0" />
                       )}
                       <span className="font-medium text-sm">
-                        {log.modelName}
+                        {component.name}
                       </span>
                       {log.revision && (
                         <span className="text-xs border border-border px-2 py-0.5 rounded font-mono text-muted-foreground">
@@ -199,7 +199,8 @@ export default async function ComponentDetailPage({
                       )}
                       {log.type === "MODEL" && (
                         <span className="text-xs text-muted-foreground font-mono">
-                          {log.boundingX}" × {log.boundingY}" × {log.boundingZ}"
+                          {log.boundingX}&quot; × {log.boundingY}&quot; ×{" "}
+                          {log.boundingZ}&quot;
                         </span>
                       )}
                       <Badge variant="outline" className="text-xs">
@@ -214,7 +215,7 @@ export default async function ComponentDetailPage({
                         log={{
                           id: log.id,
                           notes: log.notes,
-                          modelName: log.modelName,
+                          modelName: component.name,
                           componentId: component.id,
                           jobId: component.job.id,
                         }}
@@ -223,7 +224,7 @@ export default async function ComponentDetailPage({
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {log.imageData && (
-                      <PDFViewer data={log.imageData} title={log.modelName} />
+                      <PDFViewer data={log.imageData} title={component.name} />
                     )}
 
                     {(log.mass || log.volume || log.surfaceArea) && (
