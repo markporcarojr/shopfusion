@@ -332,11 +332,16 @@ function pick<T>(arr: T[], i: number): T {
 }
 
 // ─── SEED ─────────────────────────────────────────────────────────────────────
-
 async function main() {
-  const user = await prisma.user.findFirst();
+  const CLERK_ID = "user_3HH6todau2JzCMqMVwRfWwnnMxJ"; // your account from Clerk dashboard
+
+  const user = await prisma.user.findUnique({
+    where: { clerkId: CLERK_ID },
+  });
   if (!user) {
-    console.error("No user found. Sign into the app first to create one.");
+    console.error(
+      `No user with clerkId ${CLERK_ID} — sign in on the live app first.`,
+    );
     process.exit(1);
   }
 
