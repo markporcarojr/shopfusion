@@ -11,6 +11,7 @@ import { LogTimeForm } from "../LogTimeForm";
 import { ComponentActions } from "./ComponentActions";
 import { CreateComponentForm } from "./CreateComponentForm";
 import { TimeEntryActions } from "./TimeEntryActions";
+import { JobChecklist } from "./JobChecklist";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,7 @@ export default async function JobDetailPage({
         orderBy: { createdAt: "asc" },
       },
       timeEntries: { orderBy: { date: "desc" } },
+      checklist: { orderBy: { order: "asc" } },
     },
   });
 
@@ -83,9 +85,7 @@ export default async function JobDetailPage({
             {job.jobNumber ? `#${job.jobNumber}` : "No Job Number"}
           </h1>
           {job.description && (
-            <p className="text-muted-foreground mt-1">
-              {job.description}
-            </p>
+            <p className="text-muted-foreground mt-1">{job.description}</p>
           )}
         </div>
         <div className="flex items-center gap-3">
@@ -188,6 +188,9 @@ export default async function JobDetailPage({
           </div>
         )}
       </div>
+
+      {/* Checklist */}
+      <JobChecklist jobId={job.id} items={job.checklist} />
 
       {/* Time Entries */}
       <Card>

@@ -75,7 +75,7 @@ export async function updateJob(jobId: number, formData: FormData) {
 
 export async function updateJobStatus(
   jobId: number,
-  status: "ACTIVE" | "PAUSED" | "DONE"
+  status: "ACTIVE" | "PAUSED" | "DONE",
 ) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -173,4 +173,20 @@ export async function deleteChecklistItem(itemId: number) {
   await prisma.checklistItem.delete({ where: { id: itemId } });
 
   revalidatePath(`/jobs/${item.jobId}`);
+}
+
+export async function reorderChecklist(jobId: number, orderedIds: number[]) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  await prisma.$transaction(
+    orderedIds.map((id, index) =>
+      prisma.checklistItem.update({
+        where: { id },
+        data: { order: index },
+      }),
+    ),
+  );
+
+  revalidatePath(`/jobs/${jobId}`);
 }
