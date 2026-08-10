@@ -8,7 +8,8 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "backup": "tsx scripts/backup-db.ts"
+    "backup": "tsx scripts/backup-db.ts",
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.4.1",
