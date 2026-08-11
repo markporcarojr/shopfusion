@@ -1,6 +1,6 @@
+import { PrismaNeon } from "@prisma/adapter-neon";
 import "dotenv/config";
 import { PrismaClient } from "../app/generated/prisma";
-import { PrismaNeon } from "@prisma/adapter-neon";
 
 const prisma = new PrismaClient({
   adapter: new PrismaNeon({ connectionString: process.env.DATABASE_URL! }),
@@ -25,15 +25,6 @@ type PartSpec = {
   operations: string;
   notes?: string;
 };
-
-const CUSTOMERS = [
-  "Bristol",
-  "Av Flight",
-  "Great Lakes Mfg",
-  "Motor City Tool",
-  "Saginaw Steel",
-  "Oakland Industrial",
-];
 
 /** Part families modeled on the real shop data. */
 const PART_LIBRARY: PartSpec[] = [
@@ -172,21 +163,21 @@ const JOB_TEMPLATES: {
   parts: string[];
 }[] = [
   {
-    customer: "Bristol",
+    customer: "Big Dog Builders",
     description: "Conveyor roller rebuild",
     status: "ACTIVE",
     hours: 14.5,
     parts: ['5" ROLLER', "5in Bearing Cover"],
   },
   {
-    customer: "Bristol",
+    customer: "Big Dog Builders",
     description: "Line 3 roller replacement",
     status: "ACTIVE",
     hours: 22.0,
     parts: ["7in ROLLER", "Roller Slug 7", "7in Bearing Cover"],
   },
   {
-    customer: "Bristol",
+    customer: "Big Dog Builders",
     description: "Spare roller assemblies - qty 2",
     status: "DONE",
     hours: 18.75,

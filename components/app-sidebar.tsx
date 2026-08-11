@@ -12,8 +12,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { Box, Briefcase, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,6 +27,8 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
+  const User = useUser();
 
   return (
     <Sidebar>
@@ -43,7 +46,7 @@ export function AppSidebar() {
               {navItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton asChild isActive={pathname === item.href}>
-                    <Link href={item.href}>
+                    <Link href={item.href} onClick={() => setOpenMobile(false)}>
                       <item.icon className="w-4 h-4" />
                       <span>{item.label}</span>
                     </Link>

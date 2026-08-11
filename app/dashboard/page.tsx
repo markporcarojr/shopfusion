@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { AlertCircle, ArrowRight, Box, Briefcase } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -30,6 +30,9 @@ export default async function DashboardPage() {
   if (!user) {
     user = await prisma.user.create({ data: { clerkId: userId } });
   }
+
+  const clerkUser = await currentUser();
+  const displayName = clerkUser?.firstName ?? clerkUser?.username ?? "there";
 
   const [jobs, recentTime, recentFusion] = await Promise.all([
     prisma.job.findMany({
@@ -77,12 +80,12 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-sm">RC Fluid Power Inc.</p>
+          <p className="text-muted-foreground text-sm">{displayName}</p>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <Link href="/jobs">
           <Card className="hover:bg-accent transition-colors cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -107,7 +110,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Link href="/fusion">
+        <Link href="/fusion" className="hidden md:block">
           <Card className="hover:bg-accent transition-colors cursor-pointer">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Fusion Logs</CardTitle>
@@ -121,7 +124,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Two column layout */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className=" gap-6 md:grid grid-cols-2">
         {/* Recent Jobs */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -169,7 +172,7 @@ export default async function DashboardPage() {
         </Card>
 
         {/* Status Chart */}
-        <Card>
+        <Card className="hidden md:block">
           <CardHeader>
             <CardTitle className="text-sm font-medium">
               Jobs by Status
